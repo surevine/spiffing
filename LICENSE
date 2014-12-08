@@ -1,5 +1,3 @@
-/***
-
 Copyright 2014 Dave Cridland
 Copyright 2014 Surevine Ltd
 
@@ -20,13 +18,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
-***/
-
-#include <spiffing/category.h>
-
-using namespace Spiffing;
-
-Category::Category(Tag & tag, std::string const & name, Lacv const & lacv, size_t ordinal)
-: m_tag(tag), m_name(name), m_lacv(lacv), m_ordinal(ordinal) {
-}
