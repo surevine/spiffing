@@ -1,0 +1,11 @@
+*~
+build/
+report/
+gen-ber/
+clearance-parser
+label-reader
+label-parser
+converter-sample.c
+spifflicator
+transpifferizer
+test

@@ -1,0 +1,93 @@
+ACP145 -- { joint-iso-ccitt (2) country (16) u.s. (840) organization (1) u.s. government (101) dod (2) infosec (1) modules (0) 20 }
+
+DEFINITIONS IMPLICIT TAGS ::=
+
+BEGIN
+
+-- EXPORTS All; --
+
+-- IMPORTS
+
+-- Note: The definition of SecurityCategory and the SECURITY-CATEGORY macro are
+-- formalized based on the note in RFC 2634. Productions of this macro are expressly for
+-- use in the security-categories field of the ESSSecurityLabel.
+
+SecurityCategory ::= SEQUENCE {
+	type	[0]	SECURITY-CATEGORY,
+	value	[1]	ANY DEFINED BY type }
+
+SECURITY-CATEGORY ::= OBJECT IDENTIFIER
+
+-- Originally from ESS (RFC 2634), but we want to reuse this in Clearance.
+
+SecurityCategories ::= SET SIZE (1..ub-security-categories) OF
+				SecurityCategory
+
+ub-security-categories INTEGER ::= 64
+
+-- Type 1 - restrictive attributes
+
+restrictiveBitMap SECURITY-CATEGORY ::= {
+	RestrictiveTag
+IDENTIFIED BY id-restrictiveAttributes }
+
+RestrictiveTag ::= SEQUENCE {
+	tagName		OBJECT IDENTIFIER,
+	attributeFlags	BIT STRING }
+
+-- Type 2 - enumerated permissive attributes
+
+enumeratedPermissiveAttributes SECURITY-CATEGORY ::= {
+	EnumeratedTag
+IDENTIFIED BY id-enumeratedPermissiveAttributes }
+
+EnumeratedTag ::= SEQUENCE {
+	tagName		OBJECT IDENTIFIER,
+	attributeList	SET OF SecurityAttribute }
+
+-- Type 3 - enumerated restrictive attributes
+
+enumeratedRestrictiveAttributes SECURITY-CATEGORY ::= {
+	EnumeratedTag
+IDENTIFIED BY id-enumeratedRestrictiveAttributes }
+
+-- Type 6 - release attributes
+
+permissivebitMap SECURITY-CATEGORY ::= {
+	PermissiveTag
+IDENTIFIED BY id-permissiveAttributes }
+
+PermissiveTag ::= SEQUENCE {
+	tagName		OBJECT IDENTIFIER,
+	attributeFlags	BIT STRING }
+
+SecurityAttribute ::= INTEGER (0..MAX)
+
+-- Type 7 - informative attributes
+
+informativeAttributes SECURITY-CATEGORY ::= {
+	InformativeTag
+IDENTIFIED BY id-informativeAttributes }
+
+InformativeTag ::= SEQUENCE {
+	tagName		OBJECT IDENTIFIER,
+	field		FreeFormField }
+
+FreeFormField ::= CHOICE {
+	bitSetAttributes	BIT STRING,
+	securityAttributes	SET OF SecurityAttribute }
+
+-- Object identifier assignment
+
+ID ::= OBJECT IDENTIFIER
+id-infosec 	ID ::= { joint-iso-ccitt (2) country (16) u.s. (840) organization (1) gov (101) dod (2) 1 }
+id-security-categories 			ID ::= { id-infosec 8 }
+
+id-commonSecurityCategoriesSyntaxes 	ID ::= { id-security-categories 3 }
+
+id-restrictiveAttributes		ID ::= { id-commonSecurityCategoriesSyntaxes 0 }
+id-enumeratedPermissiveAttributes	ID ::= { id-commonSecurityCategoriesSyntaxes 1 }
+id-permissiveAttributes			ID ::= { id-commonSecurityCategoriesSyntaxes 2 }
+id-informativeAttributes		ID ::= { id-commonSecurityCategoriesSyntaxes 3 }
+id-enumeratedRestrictiveAttributes	ID ::= { id-commonSecurityCategoriesSyntaxes 4 }
+END

@@ -1,0 +1,53 @@
+RFC2634 DEFINITIONS ::= BEGIN
+
+-- We want the ACP 145(A) version, not the one given in RFC 2634
+IMPORTS SecurityCategory, SecurityCategories FROM ACP145;
+
+ESSSecurityLabel ::= SET {
+  security-policy-identifier SecurityPolicyIdentifier OPTIONAL, -- Optional in X.841, actually.
+  security-classification SecurityClassification OPTIONAL,
+  privacy-mark ESSPrivacyMark OPTIONAL,
+  security-categories SecurityCategories OPTIONAL }
+
+id-aa-securityLabel OBJECT IDENTIFIER ::= { iso(1) member-body(2)
+    us(840) rsadsi(113549) pkcs(1) pkcs-9(9) smime(16) id-aa(2) 2}
+
+SecurityPolicyIdentifier ::= OBJECT IDENTIFIER
+
+SecurityClassification ::= INTEGER {
+  unmarked (0),
+  unclassified (1),
+  restricted (2),
+  confidential (3),
+  secret (4),
+  top-secret (5) } (0..ub-integer-options)
+
+ub-integer-options INTEGER ::= 256
+
+ESSPrivacyMark ::= CHOICE {
+    pString      PrintableString (SIZE (1..ub-privacy-mark-length)),
+    utf8String   UTF8String (SIZE (1..MAX))
+}
+
+ub-privacy-mark-length INTEGER ::= 128
+
+-- SecurityCategory ::= SEQUENCE {
+--   type  [0] OBJECT IDENTIFIER,
+--   value [1] OCTET STRING -- -- defined by type
+-- }
+
+--Note: The aforementioned SecurityCategory syntax produces identical
+--hex encodings as the following SecurityCategory syntax that is
+--documented in the X.411 specification:
+--
+--SecurityCategory ::= SEQUENCE {
+--     type  [0]  SECURITY-CATEGORY,
+--     value [1]  ANY DEFINED BY type }
+--
+--SECURITY-CATEGORY MACRO ::=
+--BEGIN
+--TYPE NOTATION ::= type | empty
+--VALUE NOTATION ::= value (VALUE OBJECT IDENTIFIER)
+--END
+
+END

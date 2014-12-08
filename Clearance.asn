@@ -1,0 +1,23 @@
+RFC5912 DEFINITIONS IMPLICIT TAGS ::=
+
+BEGIN
+
+-- We want the ACP 145(A) version, not the one given in RFC 2634
+IMPORTS SecurityCategory, SecurityCategories FROM ACP145;
+
+   Clearance ::= SEQUENCE {
+       policyId            OBJECT IDENTIFIER,
+       classList           ClassList DEFAULT {unclassified},
+       securityCategories  SecurityCategories OPTIONAL
+   }
+
+   ClassList  ::=  BIT STRING {
+       unmarked       (0),
+       unclassified   (1),
+       restricted     (2),
+       confidential   (3),
+       secret         (4),
+       topSecret      (5)
+   }
+
+END

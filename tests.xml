@@ -1,0 +1,4 @@
+<tests>
+  <test spif='food-policy.xml' label='food-label-milk-chocolate.xml' clearance='food-clearance-lactose-intolerant.xml' label-marking='[ Luxury Sweet Chocolate Brown Contains Lactose ]' clearance-marking='{[ Commodity|[ Luxury} Sweet Brown ]' acdf-result='0'/>
+  <test spif='food-policy.xml' label='stupid-label.ber' exception='Policy mismatch: 1.1'/>
+</tests>
