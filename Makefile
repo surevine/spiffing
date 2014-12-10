@@ -22,7 +22,6 @@ tests: test spifflicator transpifferizer
 
 quick-tests: test
 	@./test tests.xml
-	@find -name '*.gcda'
 
 GENBERSOURCE=$(wildcard gen-ber/*.c) gen-ber/ESSSecurityLabel.c
 GENBEROBJS=$(GENBERSOURCE:.c=.o)
