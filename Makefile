@@ -28,7 +28,9 @@ CXXFLAGS=-std=c++11
 
 gen-ber/%.c gen-ber/%.h: ESSSecurityLabel.asn Clearance.asn acp145.asn
 	@mkdir -p $(dir $@)
-	(cd $(dir $@) && asn1c -fwide-types $(^:%=../%))
+        ASN1C_OPTS="-fwide-types"
+        if [ gawk -F= '/^NAME/{print $2}' /etc/os-release -eq "Ubuntu" ]; ASN1C_OPTS=""; fi;
+	(cd $(dir $@) && asn1c $ASN1C_OPTS $(^:%=../%))
 	@mv gen-ber/converter-sample.c .
 	@echo $(GENBEROBJS) $(GENBERSOURCE)
 
