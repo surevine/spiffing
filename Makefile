@@ -87,12 +87,12 @@ clearance-parser: build/clearance-parser.o build/libspiffing-asn.a
 $(SPIFFINGBUILD)/spiffing/%.o: src/%.cc gen-ber/ANY.h
 	@echo [C++] $@
 	@mkdir -p $(dir $@)
-	@$(CXX) $(DEBUG) $(CXXFLAGS) -Iinclude/ -Igen-ber/ -Ideps/rapidxml-1.13/ -o $@ -MD -MF $(@:%.o=%.d) -c $<
+	@$(CXX) $(DEBUG) $(CXXFLAGS) -Iinclude/ -Igen-ber/ -Ideps/rapidxml/ -o $@ -MD -MF $(@:%.o=%.d) -c $<
 
 $(SPIFFINGBUILD)/%.o: %.cc
 	@echo [C++] $@
 	@mkdir -p $(dir $@)
-	@$(CXX) $(DEBUG) $(CXXFLAGS) -Iinclude/ -Igen-ber/ -Ideps/rapidxml-1.13/ -o $@ -MD -MF $(@:%.o=%.d) -c $<
+	@$(CXX) $(DEBUG) $(CXXFLAGS) -Iinclude/ -Igen-ber/ -Ideps/rapidxml/ -o $@ -MD -MF $(@:%.o=%.d) -c $<
 
 #
 # Junk targets : Examples and what-not.
