@@ -1,7 +1,7 @@
 # Makefile for Spiffing
 
 SPIFFINGBUILD?=build
-WD=$(pwd)
+WD=$(`pwd`)
 
 all: spifflicator transpifferizer $(SPIFFINGBUILD)/libspiffing.a
 	@echo "That's all folks."
