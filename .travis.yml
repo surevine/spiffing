@@ -10,4 +10,5 @@ before_install:
 language: cpp
 script: make && make test
 after_success:
-  - coveralls --exclude gen-ber --gcov gcov-4.8 --gcov-options '\-lpr' -b `pwd`
+  - gcov-4.8 -p -r `find build -name '*.gcda'`
+  - coveralls --exclude gen-ber --no-gcov --verbose
