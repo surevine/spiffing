@@ -1,6 +1,7 @@
 # Makefile for Spiffing
 
 SPIFFINGBUILD?=build
+WD=$(pwd)
 
 all: spifflicator transpifferizer $(SPIFFINGBUILD)/libspiffing.a
 	@echo "That's all folks."
@@ -28,7 +29,7 @@ CXXFLAGS=-std=c++11
 
 gen-ber/%.c gen-ber/%.h: ESSSecurityLabel.asn Clearance.asn acp145.asn
 	@mkdir -p $(dir $@)
-	(cd $(dir $@) && ./deps/asn1c/asn1c -fwide-types $(^:%=../%))
+	(cd $(dir $@) && $(WD)/deps/asn1c/asn1c -fwide-types $(^:%=../%))
 	@mv gen-ber/converter-sample.c .
 	@echo $(GENBEROBJS) $(GENBERSOURCE)
 
