@@ -23,7 +23,7 @@ On the list:
 
 ## Building / Running
 
-__Note:__ This library uses [asn1c](https://github.com/vlm/asn1c) from a dependency. In order to build tis firstly download submodules:
+__Note:__ This library uses [asn1c](https://github.com/vlm/asn1c) from a dependency. In order to build this firstly download submodules:
 
 ```
 git submodule update --init
