@@ -9,3 +9,4 @@ converter-sample.c
 spifflicator
 transpifferizer
 test
+bin/*
