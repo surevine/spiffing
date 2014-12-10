@@ -64,6 +64,8 @@ clearances between formats (but generally from BER to XML, or XML to XML):
 > Label marking is 'Stupid Confidential'  
 > Writing stupid-label.xml as XML.  
 
+## Testing
+
 `make test` will run the tests and static analysis tools. This takes a while; you may need to
 adjust paths in the Makefile for it to work. It'll output a number of reports (for coverage
 and any bugs) in ./reports/
