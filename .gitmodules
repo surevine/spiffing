@@ -1,0 +1,6 @@
+[submodule "deps/rapidxml"]
+	path = deps/rapidxml
+	url = https://github.com/dwd/rapidxml.git
+[submodule "deps/asn1c"]
+	path = deps/asn1c
+	url = https://github.com/vlm/asn1c.git

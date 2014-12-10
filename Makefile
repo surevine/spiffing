@@ -1,6 +1,7 @@
 # Makefile for Spiffing
 
 SPIFFINGBUILD?=build
+W_DIR=$(shell pwd)
 
 all: spifflicator transpifferizer $(SPIFFINGBUILD)/libspiffing.a
 	@echo "That's all folks."
@@ -28,7 +29,7 @@ CXXFLAGS=-std=c++11
 
 gen-ber/%.c gen-ber/%.h: ESSSecurityLabel.asn Clearance.asn acp145.asn
 	@mkdir -p $(dir $@)
-	(cd $(dir $@) && asn1c -fwide-types $(^:%=../%))
+	(cd $(dir $@) && $(W_DIR)/deps/asn1c/asn1c/asn1c -S $(W_DIR)/deps/asn1c/skeletons -fwide-types $(^:%=../%))
 	@mv gen-ber/converter-sample.c .
 	@echo $(GENBEROBJS) $(GENBERSOURCE)
 
@@ -81,12 +82,12 @@ clearance-parser: build/clearance-parser.o build/libspiffing-asn.a
 $(SPIFFINGBUILD)/spiffing/%.o: src/%.cc gen-ber/ANY.h
 	@echo [C++] $@
 	@mkdir -p $(dir $@)
-	@$(CXX) $(DEBUG) $(CXXFLAGS) -Iinclude/ -Igen-ber/ -I../rapidxml-1.13/ -o $@ -MD -MF $(@:%.o=%.d) -c $<
+	@$(CXX) $(DEBUG) $(CXXFLAGS) -Iinclude/ -Igen-ber/ -Ideps/rapidxml/ -o $@ -MD -MF $(@:%.o=%.d) -c $<
 
 $(SPIFFINGBUILD)/%.o: %.cc
 	@echo [C++] $@
 	@mkdir -p $(dir $@)
-	@$(CXX) $(DEBUG) $(CXXFLAGS) -Iinclude/ -Igen-ber/ -I../rapidxml-1.13/ -o $@ -MD -MF $(@:%.o=%.d) -c $<
+	@$(CXX) $(DEBUG) $(CXXFLAGS) -Iinclude/ -Igen-ber/ -Ideps/rapidxml/ -o $@ -MD -MF $(@:%.o=%.d) -c $<
 
 #
 # Junk targets : Examples and what-not.
