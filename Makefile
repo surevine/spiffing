@@ -2,6 +2,7 @@
 
 SPIFFINGBUILD?=build
 W_DIR=$(shell pwd)
+ASN1C?=$(W_DIR)/deps/asn1c/asn1c/asn1c -S $(W_DIR)/deps/asn1c/skeletons
 
 all: spifflicator transpifferizer $(SPIFFINGBUILD)/libspiffing.a
 	@echo "That's all folks."
@@ -19,6 +20,10 @@ tests: test spifflicator transpifferizer
 	@../llvm/tools/clang/tools/scan-build/scan-build -o report/clang --use-analyzer=../llvm-build/Debug+Asserts/bin/clang make SPIFFINGBUILD=tmp-analyzer tmp-analyzer/libspiffing.a
 	@rm -rf tmp-analyzer
 
+quick-tests: test
+	@./test tests.xml
+	@find -name '*.gcda'
+
 GENBERSOURCE=$(wildcard gen-ber/*.c) gen-ber/ESSSecurityLabel.c
 GENBEROBJS=$(GENBERSOURCE:.c=.o)
 SPIFFINGSOURCE=$(wildcard src/*.cc)
@@ -29,7 +34,7 @@ CXXFLAGS=-std=c++11
 
 gen-ber/%.c gen-ber/%.h: ESSSecurityLabel.asn Clearance.asn acp145.asn
 	@mkdir -p $(dir $@)
-	(cd $(dir $@) && $(W_DIR)/deps/asn1c/asn1c/asn1c -S $(W_DIR)/deps/asn1c/skeletons -fwide-types $(^:%=../%))
+	(cd $(dir $@) && $(ASN1C) -fwide-types $(^:%=../%))
 	@mv gen-ber/converter-sample.c .
 	@echo $(GENBEROBJS) $(GENBERSOURCE)
 

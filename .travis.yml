@@ -9,4 +9,4 @@ before_install:
 language: cpp
 script: make && make test
 after_success:
-  - coveralls --exclude lib --exclude tests --gcov-options '\-lp'
+  - coveralls --exclude gen-ber --gcov-options '\-lp'
