@@ -29,7 +29,7 @@ __Note:__ This library uses [asn1c](https://github.com/vlm/asn1c) from a depende
 git submodule update --init
 ```
 
-Then you'll need to build `asn1c`:
+This will also pull down [rapidxml](https://github.com/dwd/rapidxml) for you. Then you'll need to build `asn1c`:
 
 ```
 cd deps/asn1c
@@ -37,7 +37,7 @@ cd deps/asn1c
 make
 ```
 
-`make` to build, needs asn1c installed and dwd/rapidxml to be somewhere.
+`make` to build.
 
 `make spifflicator` will give you a spifflicator to run the thing through
 its paces:
