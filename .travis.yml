@@ -5,6 +5,7 @@ before_install:
   - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.8 90
   - git submodule update --init
   - cd deps/asn1c && autoreconf -iv && ./configure && make && cd ../..
+  - sudo pip install PyYAML
   - sudo pip install cpp-coveralls
 language: cpp
 script: make && make test
