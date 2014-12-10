@@ -1,6 +1,6 @@
 before_install:
   - git submodule update --init
-  - sudo apt-get install -y asn1c g++ make
+  - sudo apt-get install -y g++ make
   - cd deps/asn1c && ./configure && make
 language: cpp
 script: make && make test
