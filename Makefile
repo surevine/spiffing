@@ -29,7 +29,7 @@ CXXFLAGS=-std=c++11
 
 gen-ber/%.c gen-ber/%.h: ESSSecurityLabel.asn Clearance.asn acp145.asn
 	@mkdir -p $(dir $@)
-	(cd $(dir $@) && $(W_DIR)/bin/asn1c -fwide-types $(^:%=../%))
+	(cd $(dir $@) && $(W_DIR)/deps/asn1c/asn1c -fwide-types $(^:%=../%))
 	@mv gen-ber/converter-sample.c .
 	@echo $(GENBEROBJS) $(GENBERSOURCE)
 
