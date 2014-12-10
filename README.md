@@ -11,13 +11,31 @@ Currently, this is experimental C++11 code, which will generate Display Markings
 BER/DER labels and clearances (X.841/ESS syntaxes), and the Open XML SPIF. There's
 also support for an XML format (primarily for testing).
 
-On the todo list:
+## TODO
+
+On the list:
 * Writing BER labels / clearances.
 * Validation according to SPIF
 * Moar test (though the spifflicator has high code coverage as-is, and is valgrind checked)
 * Equivalent Policy handling
 * Likely some parts of Display Marking handling missing.
 * Informative tag support.
+
+## Building / Running
+
+__Note:__ This library uses [asn1c](https://github.com/vlm/asn1c) from a dependency. In order to build tis firstly download submodules:
+
+```
+git submodule update --init
+```
+
+Then you'll need to build `asn1c`:
+
+```
+cd deps/asn1c
+./configure
+make
+```
 
 `make` to build, needs asn1c installed and dwd/rapidxml to be somewhere.
 
