@@ -3,6 +3,8 @@ Spiffy
 
 The beginning of a rippingly good SPIF/Label/Clearance handling library.
 
+[![Build Status](https://travis-ci.org/surevine/spiffing.svg)](https://travis-ci.org/surevine/spiffing)
+
 It's absolutely Top Hole!
 
 Currently, this is experimental C++11 code, which will generate Display Markings for Labels (and Clearances), and perform an Access Control Decision. It handles ACP-145A categories,
