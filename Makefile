@@ -2,12 +2,6 @@
 
 SPIFFINGBUILD?=build
 
-ifeq ($(shell lsb_release -si),Ubuntu)
-     ASN1C_OPTS=
-else
-     ASN1C_OPTS=-fwide-types
-endif
-
 all: spifflicator transpifferizer $(SPIFFINGBUILD)/libspiffing.a
 	@echo "That's all folks."
 
@@ -34,7 +28,7 @@ CXXFLAGS=-std=c++11
 
 gen-ber/%.c gen-ber/%.h: ESSSecurityLabel.asn Clearance.asn acp145.asn
 	@mkdir -p $(dir $@)
-	(cd $(dir $@) && asn1c $(ASN1C_OPTS) $(^:%=../%))
+	(cd $(dir $@) && ./deps/asn1c/asn1c -fwide-types $(^:%=../%))
 	@mv gen-ber/converter-sample.c .
 	@echo $(GENBEROBJS) $(GENBERSOURCE)
 
