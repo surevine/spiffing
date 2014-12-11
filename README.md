@@ -1,5 +1,5 @@
-Spiffy
-======
+Spiffing
+========
 
 The beginning of a rippingly good SPIF/Label/Clearance handling library.
 
@@ -16,14 +16,15 @@ also support for an XML format (primarily for testing).
 ## TODO
 
 On the list:
-* Writing BER labels / clearances.
 * Validation according to SPIF
 * Moar test (though the spifflicator has high code coverage as-is, and is valgrind checked)
 * Equivalent Policy handling
 * Likely some parts of Display Marking handling missing.
 * Informative tag support.
 
-## Building / Running
+## Pre-Build
+
+You can just do `make pre-build`; or you may wish to run things manually:
 
 __Note:__ This library uses [asn1c](https://github.com/vlm/asn1c) from a dependency. In order to build this firstly download submodules:
 
@@ -35,11 +36,14 @@ This will also pull down [rapidxml](https://github.com/dwd/rapidxml) for you. Th
 
 ```
 cd deps/asn1c
+autoreconf -iv
 ./configure
 make
 ```
 
-`make` to build.
+## Building and Running
+
+`make` to build pretty much everything.
 
 `make spifflicator` will give you a spifflicator to run the thing through
 its paces:
@@ -68,7 +72,10 @@ clearances between formats (but generally from BER to XML, or XML to XML):
 
 ## Testing
 
-`make test` will run the tests and static analysis tools. This takes a while; you may need to
+`make tests` will run the tests and static analysis tools. This takes a while; you may need to
 adjust paths in the Makefile for it to work. It'll output a number of reports (for coverage
 and any bugs) in ./reports/
 
+`make quick-tests` just runs the tests themselves.
+
+The tests themselves are defined in tests.xml

@@ -7,6 +7,24 @@ ASN1C?=$(W_DIR)/deps/asn1c/asn1c/asn1c -S $(W_DIR)/deps/asn1c/skeletons
 all: spifflicator transpifferizer $(SPIFFINGBUILD)/libspiffing.a
 	@echo "That's all folks."
 
+travis:
+	add-apt-repository -y ppa:ubuntu-toolchain-r/test
+	apt-get update -qq
+	apt-get install -qq gcc-4.8 g++-4.8
+	update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.8 90
+	update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.8 90
+	pip install cpp-coveralls
+
+pre-build: $(firstword $(ASN1C)) submodules
+
+submodules:
+	@[ -d deps/asn1c/asn1c ] || git submodule update --init
+
+$(W_DIR)/deps/asn1c/asn1c/asn1c: submodules
+	cd deps/asn1c && autoreconf -iv
+	cd deps/asn1c && ./configure --prefix=$(W_DIR)/tmp-asn1c
+	cd deps/asn1c && make
+
 tests: test spifflicator transpifferizer
 	@echo "Valgrind test"
 	@valgrind --error-exitcode=99 --leak-check=full ./test tests.xml
