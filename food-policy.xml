@@ -46,6 +46,11 @@
 				<tagCategory name="Not Fairtrade" lacv='742'/>
 				<tagCategory name="Not Vegan" lacv='9954'/>
 			</securityCategoryTag>
+			<securityCategoryTag name="Bandwagons" tagType="permissive">
+				<tagCategory name="Animal Rights" lacv='0'/>
+				<tagCategory name="British Flag" lacv='1'/>
+				<tagCategory name="Fluffy Animals" lacv='2'/>
+			</securityCategoryTag>
 		</securityCategoryTagSet>
 	</securityCategoryTagSets>
 	<markingQualifier code='pageBottom'>

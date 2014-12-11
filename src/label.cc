@@ -45,6 +45,9 @@ Label::Label(Spif const & policy, std::string const & label, Format fmt) : m_pol
 }
 
 void Label::parse(std::string const & label, Format fmt) {
+	if (label.empty()) {
+		throw std::runtime_error("No data to parse");
+	}
 	switch (fmt) {
 	case Format::BER:
 		parse_ber(label);
