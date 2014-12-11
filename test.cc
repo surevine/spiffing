@@ -38,15 +38,21 @@ bool test_step(std::size_t testno, rapidxml::xml_node<> * test) {
 		std::ifstream label_file(test->first_attribute("label")->value());
 		std::string label_str{std::istreambuf_iterator<char>(label_file), std::istreambuf_iterator<char>()};
 		Label label(spif, label_str, Format::ANY);
-		std::string label_marking = spif.displayMarking(label);
-		if (label_marking != test->first_attribute("label-marking")->value()) throw std::runtime_error("Mismatching label marking: " + label_marking);
-		std::ifstream clearance_file(test->first_attribute("clearance")->value());
-		std::string clearance_str{std::istreambuf_iterator<char>(clearance_file), std::istreambuf_iterator<char>()};
-		Clearance clearance(spif, clearance_str, Format::ANY);
-		std::string clearance_marking = spif.displayMarking(clearance);
-		if (clearance_marking != test->first_attribute("clearance-marking")->value()) throw std::runtime_error("Mismatching clearance marking: " + clearance_marking);
-		bool acdf = (test->first_attribute("acdf-result")->value()[0] == '1');
-		if (acdf != spif.acdf(label, clearance)) throw std::runtime_error(std::string("ACDF result is unexpected ") + (acdf ? "FAIL" : "PASS"));
+		if (test->first_attribute("label-marking")) {
+			std::string label_marking = spif.displayMarking(label);
+			if (label_marking != test->first_attribute("label-marking")->value()) throw std::runtime_error("Mismatching label marking: " + label_marking);
+		}
+		if (test->first_attribute("clearance")) {
+			std::ifstream clearance_file(test->first_attribute("clearance")->value());
+			std::string clearance_str{std::istreambuf_iterator<char>(clearance_file), std::istreambuf_iterator<char>()};
+			Clearance clearance(spif, clearance_str, Format::ANY);
+			if(test->first_attribute("clearance-marking")) {
+				std::string clearance_marking = spif.displayMarking(clearance);
+				if (clearance_marking != test->first_attribute("clearance-marking")->value()) throw std::runtime_error("Mismatching clearance marking: " + clearance_marking);
+			}
+			bool acdf = (test->first_attribute("acdf-result")->value()[0] == '1');
+			if (acdf != spif.acdf(label, clearance)) throw std::runtime_error(std::string("ACDF result is unexpected ") + (acdf ? "FAIL" : "PASS"));
+		}
 		auto ex = test->first_attribute("exception");
 		if (ex) {
 			std::cout << "Test " << testno << " expected exception: " << ex->value() << std::endl;
@@ -83,6 +89,7 @@ int main(int argc, char *argv[]) {
 			}
 		}
 		std::cout << "[" << passes << "/" << testno << "] Tests passed." << std::endl;
+		if (passes != testno) return 2;
 	} catch(std::exception & e) {
 		std::cerr << "Dude, exception: " << e.what() << std::endl;
 		return 1;

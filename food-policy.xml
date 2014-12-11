@@ -41,6 +41,17 @@
 				</markingQualifier>
 			</securityCategoryTag>
 		</securityCategoryTagSet>
+		<securityCategoryTagSet name="Ethics" id="1.2.826.0.1.6726289.0.0.3">
+			<securityCategoryTag name="Ethical Concerns" tagType="enumerated" enumType="restrictive">
+				<tagCategory name="Not Fairtrade" lacv='742'/>
+				<tagCategory name="Not Vegan" lacv='9954'/>
+			</securityCategoryTag>
+			<securityCategoryTag name="Bandwagons" tagType="permissive">
+				<tagCategory name="Animal Rights" lacv='0'/>
+				<tagCategory name="British Flag" lacv='1'/>
+				<tagCategory name="Fluffy Animals" lacv='2'/>
+			</securityCategoryTag>
+		</securityCategoryTagSet>
 	</securityCategoryTagSets>
 	<markingQualifier code='pageBottom'>
 		<qualifier markingQualifier="[ " qualifierCode="prefix"/>

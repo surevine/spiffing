@@ -48,6 +48,9 @@ void Spiffing::Clearance::addCategory(std::shared_ptr<Category> const & cat) {
 }
 
 void Spiffing::Clearance::parse(std::string const & clearance, Spiffing::Format fmt) {
+	if (clearance.empty()) {
+		throw std::runtime_error("No data to parse");
+	}
 	switch (fmt) {
 	case Spiffing::Format::BER:
 		parse_ber(clearance);

@@ -5,4 +5,4 @@ language: cpp
 script: make && make test && make quick-tests
 after_success:
   - gcov-4.8 -p -r `find build -name '*.gcda'`
-  - coveralls --exclude gen-ber --no-gcov --verbose
+  - coveralls --exclude gen-ber --exclude deps --no-gcov --verbose

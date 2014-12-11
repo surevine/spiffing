@@ -5,7 +5,9 @@
   <tag type='permissive' id='1.2.826.0.1.6726289.0.0.1' lacv='3'>Sweet</tag>
   <tag type='enumeratedPermissive' id='1.2.826.0.1.6726289.0.0.1' lacv='3'>Brown</tag>
   <tag type='restrictive' id='1.2.826.0.1.6726289.0.0.2' lacv='0'/>
+  <tag type='restrictive' id='1.2.826.0.1.6726289.0.0.2' lacv='1'/>
   <tag type='restrictive' id='1.2.826.0.1.6726289.0.0.2' lacv='2'/>
   <tag type='restrictive' id='1.2.826.0.1.6726289.0.0.2' lacv='3'/>
   <tag type='enumeratedRestrictive' id='1.2.826.0.1.6726289.0.0.3' lacv='9954'/>
+  <tag type='permissive' id='1.2.826.0.1.6726289.0.0.3' lacv='0'/>
 </clearance>
