@@ -28,9 +28,16 @@ $(W_DIR)/deps/asn1c/asn1c/asn1c: submodules
 tests: test spifflicator transpifferizer
 	@echo "Valgrind test"
 	@valgrind --error-exitcode=99 --leak-check=full ./test tests.xml
+	@valgrind --error-exitcode=99 --leak-check=full ./transpifferizer food-policy.xml food-label-milk-chocolate.xml food-label-milk-chocolate-out.ber
+	@valgrind --error-exitcode=99 --leak-check=full ./transpifferizer food-policy.xml food-label-milk-chocolate-out.ber food-label-milk-chocolate-out.xml
+	@valgrind --error-exitcode=99 --leak-check=full ./transpifferizer food-policy.xml food-label-milk-chocolate-out.xml food-label-milk-chocolate-out2.ber
+	@diff food-label-milk-chocolate-out2.ber food-label-milk-chocolate-out.ber
+	@valgrind --error-exitcode=99 --leak-check=full ./transpifferizer food-policy.xml food-clearance-lactose-intolerant.xml food-clearance-lactose-intolerant-out.ber
+	@valgrind --error-exitcode=99 --leak-check=full ./transpifferizer food-policy.xml food-clearance-lactose-intolerant-out.ber food-clearance-lactose-intolerant-out.xml
+	@valgrind --error-exitcode=99 --leak-check=full ./transpifferizer food-policy.xml food-clearance-lactose-intolerant-out.xml food-clearance-lactose-intolerant-out2.ber
+	@diff food-clearance-lactose-intolerant-out.ber food-clearance-lactose-intolerant-out2.ber
 	@echo "Coverage test"
-	@./test tests.xml
-	@./test tests.xml
+	@$(MAKE) quick-tests
 	@lcov --base-directory . --directory build/ --capture --output-file build/spiffing.info
 	@mkdir -p report/lcov/
 	@genhtml --output-directory report/lcov/ build/spiffing.info
@@ -38,8 +45,16 @@ tests: test spifflicator transpifferizer
 	@../llvm/tools/clang/tools/scan-build/scan-build -o report/clang --use-analyzer=../llvm-build/Debug+Asserts/bin/clang make SPIFFINGBUILD=tmp-analyzer tmp-analyzer/libspiffing.a
 	@rm -rf tmp-analyzer
 
-quick-tests: test
-	@./test tests.xml
+quick-tests: test transpifferizer
+	./test tests.xml
+	./transpifferizer food-policy.xml food-label-milk-chocolate.xml food-label-milk-chocolate-out.ber
+	./transpifferizer food-policy.xml food-label-milk-chocolate-out.ber food-label-milk-chocolate-out.xml
+	./transpifferizer food-policy.xml food-label-milk-chocolate-out.xml food-label-milk-chocolate-out2.ber
+	diff food-label-milk-chocolate-out2.ber food-label-milk-chocolate-out.ber
+	./transpifferizer food-policy.xml food-clearance-lactose-intolerant.xml food-clearance-lactose-intolerant-out.ber
+	./transpifferizer food-policy.xml food-clearance-lactose-intolerant-out.ber food-clearance-lactose-intolerant-out.xml
+	./transpifferizer food-policy.xml food-clearance-lactose-intolerant-out.xml food-clearance-lactose-intolerant-out2.ber
+	diff food-clearance-lactose-intolerant-out.ber food-clearance-lactose-intolerant-out2.ber
 
 GENBERSOURCE=$(wildcard gen-ber/*.c) gen-ber/ESSSecurityLabel.c
 GENBEROBJS=$(GENBERSOURCE:.c=.o)

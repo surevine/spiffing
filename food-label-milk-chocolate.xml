@@ -5,4 +5,5 @@
   <tag type='permissive' id='1.2.826.0.1.6726289.0.0.1' lacv='6'>Chocolate</tag>
   <tag type='enumeratedPermissive' id='1.2.826.0.1.6726289.0.0.1' lacv='3'>Brown</tag>
   <tag type='restrictive' id='1.2.826.0.1.6726289.0.0.2' lacv='1'>Milk</tag>
+  <tag type='enumeratedRestrictive' id='1.2.826.0.1.6726289.0.0.3' lacv='9954'>Not Vegan</tag>
 </label>
