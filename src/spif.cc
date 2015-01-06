@@ -121,6 +121,13 @@ namespace {
 				continue;
 			}
 			std::shared_ptr<Tag> t{new Tag(*ts, tagType, tagName_a->value())};
+			for (auto excClass = tag->first_node("excludedClass"); excClass; excClass = excClass->next_sibling("excludedClass")) {
+				if (!excClass->value() || !excClass->value_size()) throw std::runtime_error("Empty excludedClass element in securityCategoryTag");
+				std::string className{excClass->value(), excClass->value_size()};
+				auto it = classNames.find(className);
+				if (it == classNames.end()) throw std::runtime_error("Unknown classification in exclusion");
+				t->excluded(*(*it).second);
+			}
 			ts->addTag(t);
 			t->marking(parseMarking(tag));
 			for (auto cat = tag->first_node("tagCategory"); cat; cat = cat->next_sibling("tagCategory")) {

@@ -48,7 +48,7 @@ namespace Spiffing {
         Tag const & tag() const {
           return m_tag;
         }
-        bool valid(Classification const & c);
+        bool valid(Classification const & c) const;
         void excluded(Classification const & c);
 
     private:

@@ -26,6 +26,7 @@ SOFTWARE.
 #include <spiffing/tag.h>
 #include <spiffing/category.h>
 #include <spiffing/tagset.h>
+#include <spiffing/classification.h>
 
 using namespace Spiffing;
 
@@ -36,4 +37,15 @@ Tag::Tag(TagSet & tagSet, TagType tagType, std::string const & name)
 void Tag::addCategory(std::shared_ptr<Category> const & c) {
   m_categories[c->lacv()] = c;
   m_tagSet.addCategory(*this, c);
+}
+
+bool Tag::valid(Classification const & c) const {
+  return m_excludedClass.find(c.lacv()) == m_excludedClass.end();
+}
+
+void Tag::excluded(Classification const & c) {
+  auto ins = m_excludedClass.insert(c.lacv());
+  if (!ins.second) {
+    // Duplicate, but identical, excludedClass?
+  }
 }

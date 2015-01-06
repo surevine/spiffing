@@ -25,6 +25,7 @@ SOFTWARE.
 
 #include <spiffing/category.h>
 #include <spiffing/classification.h>
+#include <spiffing/tag.h>
 
 using namespace Spiffing;
 
@@ -32,7 +33,8 @@ Category::Category(Tag & tag, std::string const & name, Lacv const & lacv, size_
 : m_tag(tag), m_name(name), m_lacv(lacv), m_ordinal(ordinal) {
 }
 
-bool Category::valid(Classification const & c) {
+bool Category::valid(Classification const & c) const {
+  if (!m_tag.valid(c)) return false;
   return m_excludedClass.find(c.lacv()) == m_excludedClass.end();
 }
 

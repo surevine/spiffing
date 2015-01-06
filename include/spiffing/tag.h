@@ -60,12 +60,16 @@ namespace Spiffing {
           return m_tagSet;
         }
 
+        bool valid(Classification const &) const;
+        void excluded(Classification const &);
+
     private:
         std::string m_name;
         std::map<Lacv,std::shared_ptr<Category>> m_categories;
         TagType m_tagType;
         TagSet & m_tagSet;
         std::unique_ptr<Marking> m_marking;
+        std::set<lacv_t> m_excludedClass;
     };
 }
 

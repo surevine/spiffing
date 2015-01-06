@@ -34,6 +34,7 @@ SOFTWARE.
 #include <spiffing/tagset.h>
 #include <spiffing/tag.h>
 #include <spiffing/catutils.h>
+#include <spiffing/classification.h>
 #include <rapidxml.hpp>
 #include <rapidxml_print.hpp>
 #include <sstream>
@@ -77,6 +78,7 @@ void Label::write(Format fmt, std::string & output) {
 }
 
 void Label::addCategory(std::shared_ptr<Category> const & cat) {
+	if (!cat->valid(*m_class)) throw std::runtime_error("Invalid category in label");
 	m_cats.insert(cat);
 }
 
