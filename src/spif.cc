@@ -92,6 +92,42 @@ namespace {
 		return ptr;
 	}
 
+	TagType parseTagType(rapidxml::xml_node<> * node) {
+		auto tagType_a = node->first_attribute("tagType");
+		if (!tagType_a) throw std::runtime_error("element has no tagType");
+		std::string tagTypeName = tagType_a->value();
+		TagType tagType;
+		if (tagTypeName == "permissive") {
+			tagType = TagType::permissive;
+		} else if (tagTypeName == "restrictive") {
+			tagType = TagType::restrictive;
+		} else if (tagTypeName == "enumerated") {
+			auto enumType_a = node->first_attribute("enumType");
+			if (!enumType_a) throw std::runtime_error("securityCategoryTag has no enumType");
+			std::string enumTypeName = enumType_a->value();
+			if (enumTypeName == "permissive") {
+				tagType = TagType::enumeratedPermissive;
+			} else {
+				tagType = TagType::enumeratedRestrictive;
+			}
+		} else {
+			// TODO :: tagType7; ignored for now.
+			return TagType::informationalBitSet;
+		}
+		return tagType;
+	}
+
+	template<typename T>
+	void parseExcludedClass(rapidxml::xml_node<> * node, T & t, std::map<std::string,std::shared_ptr<Classification>> const & classNames) {
+		for (auto excClass = node->first_node("excludedClass"); excClass; excClass = excClass->next_sibling("excludedClass")) {
+			if (!excClass->value() || !excClass->value_size()) throw std::runtime_error("Empty excludedClass element");
+			std::string className{excClass->value(), excClass->value_size()};
+			auto it = classNames.find(className);
+			if (it == classNames.end()) throw std::runtime_error("Unknown classification in exclusion");
+			t->excluded(*(*it).second);
+		}
+	}
+
 	std::shared_ptr<TagSet> parseTagSet(rapidxml::xml_node<> * tagSet, size_t & ordinal, std::map<std::string,std::shared_ptr<Classification>> const & classNames) {
 		auto id_a = tagSet->first_attribute("id");
 		auto name_a = tagSet->first_attribute("name");
@@ -99,47 +135,16 @@ namespace {
 		for (auto tag = tagSet->first_node("securityCategoryTag"); tag; tag = tag->next_sibling("securityCategoryTag")) {
 			auto tagName_a = tag->first_attribute("name");
 			if (!tagName_a) throw std::runtime_error("securityCategoryTag has no name");
-			auto tagType_a = tag->first_attribute("tagType");
-			if (!tagType_a) throw std::runtime_error("securityCategoryTag has no tagType");
-			std::string tagTypeName = tagType_a->value();
-			TagType tagType;
-			if (tagTypeName == "permissive") {
-				tagType = TagType::permissive;
-			} else if (tagTypeName == "restrictive") {
-				tagType = TagType::restrictive;
-			} else if (tagTypeName == "enumerated") {
-				auto enumType_a = tag->first_attribute("enumType");
-				if (!enumType_a) throw std::runtime_error("securityCategoryTag has no enumType");
-				std::string enumTypeName = enumType_a->value();
-				if (enumTypeName == "permissive") {
-					tagType = TagType::enumeratedPermissive;
-				} else {
-					tagType = TagType::enumeratedRestrictive;
-				}
-			} else {
-				// TODO :: tagType7; ignored for now.
-				continue;
-			}
+			TagType tagType = parseTagType(tag);
+			if (tagType == TagType::informationalBitSet) continue; // TODO
 			std::shared_ptr<Tag> t{new Tag(*ts, tagType, tagName_a->value())};
-			for (auto excClass = tag->first_node("excludedClass"); excClass; excClass = excClass->next_sibling("excludedClass")) {
-				if (!excClass->value() || !excClass->value_size()) throw std::runtime_error("Empty excludedClass element in securityCategoryTag");
-				std::string className{excClass->value(), excClass->value_size()};
-				auto it = classNames.find(className);
-				if (it == classNames.end()) throw std::runtime_error("Unknown classification in exclusion");
-				t->excluded(*(*it).second);
-			}
+			parseExcludedClass(tag, t, classNames);
 			ts->addTag(t);
 			t->marking(parseMarking(tag));
 			for (auto cat = tag->first_node("tagCategory"); cat; cat = cat->next_sibling("tagCategory")) {
 				Lacv lacv = parseLacv(cat->first_attribute("lacv"));
 				std::shared_ptr<Category> c{new Category(*t, cat->first_attribute("name")->value(), lacv, ordinal++)};
-				for (auto excClass = cat->first_node("excludedClass"); excClass; excClass = excClass->next_sibling("excludedClass")) {
-					if (!excClass->value() || !excClass->value_size()) throw std::runtime_error("Empty excludedClass element in tagCategory");
-					std::string className{excClass->value(), excClass->value_size()};
-					auto it = classNames.find(className);
-					if (it == classNames.end()) throw std::runtime_error("Unknown classification in exclusion");
-					c->excluded(*(*it).second);
-				}
+				parseExcludedClass(cat, c, classNames);
 				t->addCategory(c);
 			}
 		}
