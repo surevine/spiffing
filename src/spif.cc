@@ -119,6 +119,7 @@ namespace {
 		return tagType;
 	}
 
+	// For excludedCategory, also used within categoryGroup.
 	std::unique_ptr<CategoryData> parseOptionalCategoryData(rapidxml::xml_node<> * node) {
 		std::string tagSetRef{node->value()};
 		TagType tagType = parseTagType(node);
@@ -131,6 +132,7 @@ namespace {
 		}
 	}
 
+	// For requiredCategory
 	std::unique_ptr<CategoryGroup> parseCategoryGroup(rapidxml::xml_node<> * node) {
 		auto op_a = node->first_attribute("operation");
 		std::string opname{op_a->value(), op_a->value_size()};
