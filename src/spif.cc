@@ -34,6 +34,8 @@ SOFTWARE.
 #include <INTEGER.h>
 #include <spiffing/catutils.h>
 #include <spiffing/marking.h>
+#include <spiffing/categorydata.h>
+#include <spiffing/categorygroup.h>
 
 using namespace Spiffing;
 
@@ -115,6 +117,36 @@ namespace {
 			return TagType::informationalBitSet;
 		}
 		return tagType;
+	}
+
+	std::unique_ptr<CategoryData> parseOptionalCategoryData(rapidxml::xml_node<> * node) {
+		std::string tagSetRef{node->value()};
+		TagType tagType = parseTagType(node);
+		auto lacv_a = node->first_attribute("lacv");
+		if (lacv_a) {
+			Lacv l{parseLacv(lacv_a)};
+			return std::unique_ptr<CategoryData>(new CategoryData(tagSetRef, tagType, l));
+		} else {
+			return std::unique_ptr<CategoryData>(new CategoryData(tagSetRef, tagType));
+		}
+	}
+
+	std::unique_ptr<CategoryGroup> parseCategoryGroup(rapidxml::xml_node<> * node) {
+		auto op_a = node->first_attribute("operation");
+		std::string opname{op_a->value(), op_a->value_size()};
+		OperationType opType{OperationType::onlyOne};
+		if (opname == "onlyOne") {
+			opType = OperationType::onlyOne;
+		} else if (opname == "oneOrMore") {
+			opType = OperationType::oneOrMore;
+		} else if (opname == "all") {
+			opType = OperationType::all;
+		}
+		std::unique_ptr<CategoryGroup> group(new CategoryGroup(opType));
+		for (auto cd = node->first_node("categoryGroup"); cd; cd->next_sibling("categoryGroup")) {
+			group->addCategoryData(parseOptionalCategoryData(cd));
+		}
+		return group;
 	}
 
 	template<typename T>

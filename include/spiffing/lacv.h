@@ -34,6 +34,7 @@ namespace Spiffing {
     public:
         Lacv(std::string const &);
         Lacv(std::size_t);
+        Lacv();
 
         static Lacv parse(std::string const &);
 
@@ -43,6 +44,12 @@ namespace Spiffing {
         bool ascii() const;
         bool operator <(Lacv const & l) const {
           return m_name < l.m_name;
+        }
+        bool operator ==(Lacv const & l) const {
+          return m_name == l.m_name;
+        }
+        bool operator !=(Lacv const & l) const {
+          return m_name != l.m_name;
         }
 
         void genString() const;
@@ -61,6 +68,7 @@ namespace Spiffing {
           return m_sz / d;
         }
     private:
+        void parse(std::size_t sz);
         mutable std::size_t m_sz;
         mutable bool m_sz_valid;
         std::string m_name;

@@ -43,6 +43,11 @@ namespace Spiffing {
 			informationalBitSet
   };
 	typedef unsigned long lacv_t;
+	enum class OperationType {
+		onlyOne,
+		oneOrMore,
+		all
+	};
 	class Classification;
 	class Label;
 	class Clearance;
