@@ -29,6 +29,7 @@ SOFTWARE.
 #include <spiffing/constants.h>
 #include <spiffing/lacv.h>
 #include <string>
+#include <set>
 
 namespace Spiffing {
     class Category {
@@ -47,12 +48,15 @@ namespace Spiffing {
         Tag const & tag() const {
           return m_tag;
         }
+        bool valid(Classification const & c);
+        void excluded(Classification const & c);
 
     private:
         Lacv m_lacv;
         std::string m_name;
         Tag & m_tag;
         size_t m_ordinal;
+        std::set<lacv_t> m_excludedClass;
     };
 }
 

@@ -92,7 +92,7 @@ namespace {
 		return ptr;
 	}
 
-	std::shared_ptr<TagSet> parseTagSet(rapidxml::xml_node<> * tagSet, size_t & ordinal) {
+	std::shared_ptr<TagSet> parseTagSet(rapidxml::xml_node<> * tagSet, size_t & ordinal, std::map<std::string,std::shared_ptr<Classification>> const & classNames) {
 		auto id_a = tagSet->first_attribute("id");
 		auto name_a = tagSet->first_attribute("name");
 		std::shared_ptr<TagSet> ts{new TagSet(id_a->value(), name_a->value())};
@@ -126,6 +126,13 @@ namespace {
 			for (auto cat = tag->first_node("tagCategory"); cat; cat = cat->next_sibling("tagCategory")) {
 				Lacv lacv = parseLacv(cat->first_attribute("lacv"));
 				std::shared_ptr<Category> c{new Category(*t, cat->first_attribute("name")->value(), lacv, ordinal++)};
+				for (auto excClass = cat->first_node("excludedClass"); excClass; excClass = excClass->next_sibling("excludedClass")) {
+					if (!excClass->value() || !excClass->value_size()) throw std::runtime_error("Empty excludedClass element in tagCategory");
+					std::string className{excClass->value(), excClass->value_size()};
+					auto it = classNames.find(className);
+					if (it == classNames.end()) throw std::runtime_error("Unknown classification in exclusion");
+					c->excluded(*(*it).second);
+				}
 				t->addCategory(c);
 			}
 		}
@@ -154,18 +161,23 @@ void Spif::parse(std::string const & s, Format fmt) {
 		}
 	}
 	auto securityClassifications = node->first_node("securityClassifications");
+	std::map<std::string, std::shared_ptr<Classification>> classNames;
 	for (auto classn = securityClassifications->first_node("securityClassification"); classn; classn = classn->next_sibling("securityClassification")) {
 		std::shared_ptr<Classification> c = parseClassification(classn);
 		auto ins = m_classifications.insert(std::make_pair(c->lacv(), c));
 		if (!ins.second) {
-			throw std::runtime_error("Duplicate classification ");
+			throw std::runtime_error("Duplicate classification " + c->name());
+		}
+		auto ins2 = classNames.insert(std::make_pair(c->name(), c));
+		if (!ins2.second) {
+			throw std::runtime_error("Duplicate classification name " + c->name());
 		}
 	}
 	auto securityCategoryTagSets = node->first_node("securityCategoryTagSets");
 	if (securityCategoryTagSets) {
 		size_t ordinal = 0;
 		for (auto tagSet = securityCategoryTagSets->first_node("securityCategoryTagSet"); tagSet; tagSet = tagSet->next_sibling("securityCategoryTagSet")) {
-			std::shared_ptr<TagSet> ts = parseTagSet(tagSet, ordinal);
+			std::shared_ptr<TagSet> ts = parseTagSet(tagSet, ordinal, classNames);
 			m_tagSets.insert(std::make_pair(ts->id(), ts));
 		}
 	}

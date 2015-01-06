@@ -24,9 +24,21 @@ SOFTWARE.
 ***/
 
 #include <spiffing/category.h>
+#include <spiffing/classification.h>
 
 using namespace Spiffing;
 
 Category::Category(Tag & tag, std::string const & name, Lacv const & lacv, size_t ordinal)
 : m_tag(tag), m_name(name), m_lacv(lacv), m_ordinal(ordinal) {
+}
+
+bool Category::valid(Classification const & c) {
+  return m_excludedClass.find(c.lacv()) == m_excludedClass.end();
+}
+
+void Category::excluded(Classification const & c) {
+  auto ins = m_excludedClass.insert(c.lacv());
+  if (!ins.second) {
+    // Duplicate, but identical, excludedClass?
+  }
 }
