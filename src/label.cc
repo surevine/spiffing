@@ -34,7 +34,6 @@ SOFTWARE.
 #include <spiffing/tagset.h>
 #include <spiffing/tag.h>
 #include <spiffing/catutils.h>
-#include <spiffing/classification.h>
 #include <rapidxml.hpp>
 #include <rapidxml_print.hpp>
 #include <sstream>
