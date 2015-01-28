@@ -40,3 +40,7 @@ void TagSet::addTag(std::shared_ptr<Tag> const & t) {
 void TagSet::addCategory(Tag const & tag, std::shared_ptr<Category> const & cat) {
 	m_cats[std::make_pair(tag.tagType(), cat->lacv())] = cat;
 }
+
+void TagSet::addMarking(std::unique_ptr<Marking> marking) {
+	m_marking = std::move(marking);
+}

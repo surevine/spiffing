@@ -55,17 +55,6 @@ Spif::Spif(std::istream & s, Format fmt)
 }
 
 namespace {
-	std::shared_ptr<Classification> parseClassification(rapidxml::xml_node<> * classification) {
-		auto lacv_a = classification->first_attribute("lacv");
-		lacv_t lacv{strtoull(lacv_a->value(), NULL, 10)};
-		auto name_a = classification->first_attribute("name");
-		std::string name{name_a->value()};
-		auto hierarchy_a = classification->first_attribute("hierarchy");
-		unsigned long hierarchy{strtoul(hierarchy_a->value(), NULL, 10)};
-		std::shared_ptr<Classification> cls{new Classification(lacv, name, hierarchy)};
-		return cls;
-	}
-
 	Lacv parseLacv(rapidxml::xml_attribute<> * lacv) {
 		return Lacv::parse(std::string{(char *)lacv->value(), lacv->value_size()});
 	}
@@ -162,10 +151,26 @@ namespace {
 		}
 	}
 
+	std::shared_ptr<Classification> parseClassification(rapidxml::xml_node<> * classification) {
+		auto lacv_a = classification->first_attribute("lacv");
+		lacv_t lacv{strtoull(lacv_a->value(), NULL, 10)};
+		auto name_a = classification->first_attribute("name");
+		std::string name{name_a->value()};
+		auto hierarchy_a = classification->first_attribute("hierarchy");
+		unsigned long hierarchy{strtoul(hierarchy_a->value(), NULL, 10)};
+		std::shared_ptr<Classification> cls{new Classification(lacv, name, hierarchy)};
+		for (auto reqCat = classification->first_node("requiredCategory"); reqCat; reqCat->next_sibling("requiredCategory")) {
+			cls->addRequiredCategory(parseCategoryGroup(reqCat));
+		}
+		cls->addMarking(parseMarking(classification));
+		return cls;
+	}
+
 	std::shared_ptr<TagSet> parseTagSet(rapidxml::xml_node<> * tagSet, size_t & ordinal, std::map<std::string,std::shared_ptr<Classification>> const & classNames) {
 		auto id_a = tagSet->first_attribute("id");
 		auto name_a = tagSet->first_attribute("name");
 		std::shared_ptr<TagSet> ts{new TagSet(id_a->value(), name_a->value())};
+		ts->addMarking(parseMarking(tagSet));
 		for (auto tag = tagSet->first_node("securityCategoryTag"); tag; tag = tag->next_sibling("securityCategoryTag")) {
 			auto tagName_a = tag->first_attribute("name");
 			if (!tagName_a) throw std::runtime_error("securityCategoryTag has no name");
@@ -277,6 +282,7 @@ std::string Spif::displayMarking(Spiffing::Clearance const & clearance) const {
 		throw std::runtime_error("Clearance is incorrect policy");
 	}
 	std::string sep;
+	if (m_marking != nullptr) marking += m_marking->prefix();
 	if (m_marking != nullptr) sep = m_marking->sep();
 	if (sep.empty()) sep = " "; // Default.
 	for (auto cls : clearance.classifications()) {
@@ -289,7 +295,6 @@ std::string Spif::displayMarking(Spiffing::Clearance const & clearance) const {
 		} else {
 			marking += "|";
 		}
-		if (m_marking != nullptr) marking += m_marking->prefix();
 		marking += (*clsit).second->name();
 	}
 	if (!any) {

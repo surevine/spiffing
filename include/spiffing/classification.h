@@ -28,6 +28,8 @@ SOFTWARE.
 
 #include <spiffing/constants.h>
 #include <string>
+#include <set>
+#include <memory>
 
 namespace Spiffing {
 	class Classification {
@@ -43,11 +45,15 @@ namespace Spiffing {
 		std::string const & name() const {
 			return m_name;
 		}
+		void addRequiredCategory(std::unique_ptr<CategoryGroup> reqCats);
+		void addMarking(std::unique_ptr<Marking> marking);
 	private:
 		lacv_t m_lacv;
 		std::string const m_name;
 		unsigned long m_hierarchy;
 		bool m_obsolete;
+		std::set<std::unique_ptr<CategoryGroup>> m_reqCats;
+		std::unique_ptr<Marking> m_marking;
 	};
 
 }

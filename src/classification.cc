@@ -24,6 +24,9 @@ SOFTWARE.
 ***/
 
 #include <spiffing/classification.h>
+#include <spiffing/categorygroup.h>
+#include <spiffing/categorydata.h>
+#include <spiffing/marking.h>
 
 using namespace Spiffing;
 
@@ -33,4 +36,12 @@ Classification::Classification(lacv_t lacv, std::string const & name, unsigned l
 
 bool Classification::operator < (Classification const & c) const {
 	return m_hierarchy < c.m_hierarchy;
+}
+
+void Classification::addRequiredCategory(std::unique_ptr<CategoryGroup> reqCats) {
+	m_reqCats.insert(std::move(reqCats));
+}
+
+void Classification::addMarking(std::unique_ptr<Marking> marking) {
+	m_marking = std::move(marking);
 }

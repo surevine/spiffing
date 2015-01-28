@@ -39,6 +39,7 @@ tests: test spifflicator transpifferizer
 	@echo "Coverage test"
 	@$(MAKE) quick-tests
 	@lcov --base-directory . --directory build/ --capture --output-file build/spiffing.info
+	@lcov --remove build/spiffing.info deps/*
 	@mkdir -p report/lcov/
 	@genhtml --output-directory report/lcov/ build/spiffing.info
 	@echo "CLang test"
