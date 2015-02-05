@@ -38,6 +38,11 @@ bool test_step(std::size_t testno, rapidxml::xml_node<> * test) {
 		std::ifstream label_file(test->first_attribute("label")->value());
 		std::string label_str{std::istreambuf_iterator<char>(label_file), std::istreambuf_iterator<char>()};
 		Label label(spif, label_str, Format::ANY);
+		if (test->first_attribute("valid")) {
+			bool result = spif.valid(label);
+			bool expected = (test->first_attribute("valid")->value()[0] == 't');
+			if (result != expected) throw std::runtime_error(std::string("Validity failure: Expected ") + (expected ? "VALID" : "NOT valid"));
+		}
 		if (test->first_attribute("label-marking")) {
 			std::string label_marking = spif.displayMarking(label);
 			if (label_marking != test->first_attribute("label-marking")->value()) throw std::runtime_error("Mismatching label marking: " + label_marking);

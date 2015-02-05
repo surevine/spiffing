@@ -121,7 +121,13 @@ namespace {
 
 	// For excludedCategory, also used within categoryGroup.
 	std::unique_ptr<CategoryData> parseOptionalCategoryData(rapidxml::xml_node<> * node) {
-		std::string tagSetRef{node->value()};
+		std::string tagSetRef;
+		auto tagSetRef_a = node->first_attribute("tagSetRef");
+		if (tagSetRef_a) {
+			tagSetRef = tagSetRef_a->value();
+		} else {
+			throw std::runtime_error("Missing tagSetRef in OptionalCategoryData");
+		}
 		TagType tagType = parseTagType(node);
 		auto lacv_a = node->first_attribute("lacv");
 		if (lacv_a) {
@@ -172,7 +178,7 @@ namespace {
 			TagType tagType = parseTagType(tag);
 			if (tagType == TagType::informationalBitSet) continue; // TODO
 			std::shared_ptr<Tag> t{new Tag(*ts, tagType, tagName_a->value())};
-			parseExcludedClass(tag, t, classNames);
+			parseExcludedClass(tag, t, classNames); // TODO Not sure this is legal, really.
 			ts->addTag(t);
 			t->marking(parseMarking(tag));
 			for (auto cat = tag->first_node("tagCategory"); cat; cat = cat->next_sibling("tagCategory")) {
@@ -180,6 +186,14 @@ namespace {
 				std::shared_ptr<Category> c{new Category(*t, cat->first_attribute("name")->value(), lacv, ordinal++)};
 				parseExcludedClass(cat, c, classNames);
 				t->addCategory(c);
+				for (auto reqnode = cat->first_node("requiredCategory"); reqnode; reqnode = reqnode->next_sibling("requiredCategory")) {
+					std::unique_ptr<CategoryGroup> req = parseCategoryGroup(reqnode);
+					c->required(std::move(req));
+				}
+				for (auto excnode = cat->first_node("excludedCategory"); excnode; excnode = excnode->next_sibling("excludedCategory")) {
+					std::unique_ptr<CategoryData> exc = parseOptionalCategoryData(excnode);
+					c->excluded(std::move(exc));
+				}
 			}
 		}
 		return ts;
@@ -225,9 +239,17 @@ void Spif::parse(std::string const & s, Format fmt) {
 		for (auto tagSet = securityCategoryTagSets->first_node("securityCategoryTagSet"); tagSet; tagSet = tagSet->next_sibling("securityCategoryTagSet")) {
 			std::shared_ptr<TagSet> ts = parseTagSet(tagSet, ordinal, classNames);
 			m_tagSets.insert(std::make_pair(ts->id(), ts));
+			m_tagSetsByName.insert(std::make_pair(ts->name(), ts));
 		}
 	}
 	m_marking = parseMarking(node);
+	// Once we've parsed all the tagSets, we need to "compile" the category restrictions.
+	for (auto & ts : m_tagSets) {
+		ts.second->compile(*this);
+	}
+	for (auto & cls : m_classifications) {
+		cls.second->compile(*this);
+	}
 }
 
 namespace {
@@ -264,7 +286,7 @@ std::string Spif::displayMarking(Label const & label) const {
 	std::string sep;
 	if (m_marking != nullptr) sep = m_marking->sep();
 	if (sep.empty()) sep = " "; // Default.
-	marking += label.classification()->name();
+	marking += label.classification().name();
 	categoryMarkings(marking, label.categories(), sep);
 	if (m_marking != nullptr) marking += m_marking->suffix();
 	return marking;
@@ -314,7 +336,7 @@ bool Spif::acdf(Label const & label, Spiffing::Clearance const & clearance) cons
 	if (label.policy_id() != m_oid) {
 		throw std::runtime_error("Label is incorrect policy");
 	}
-	if (!clearance.hasClassification(label.classification()->lacv())) return false;
+	if (!clearance.hasClassification(label.classification().lacv())) return false;
 	// Now consider each category in the label.
 	std::string permissiveTagName;
 	std::set<CategoryRef> cats;
@@ -346,4 +368,17 @@ std::shared_ptr<TagSet> const & Spif::tagSetLookup(std::string const & tagSetId)
 	auto i = m_tagSets.find(tagSetId);
 	if (i == m_tagSets.end()) throw std::runtime_error("Unknown tagset id: " + tagSetId);
 	return (*i).second;
+}
+
+std::shared_ptr<TagSet> const & Spif::tagSetLookupByName(std::string const & tagSet) const {
+	auto i = m_tagSetsByName.find(tagSet);
+	if (i == m_tagSetsByName.end()) throw std::runtime_error("Unknown tagset name: " + tagSet);
+	return (*i).second;
+}
+
+bool Spif::valid(Label const & label) const {
+	for (auto & cat : label.categories()) {
+		if (!cat->valid(label)) return false;
+	}
+	return true;
 }

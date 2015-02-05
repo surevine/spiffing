@@ -28,8 +28,10 @@ SOFTWARE.
 
 #include <spiffing/constants.h>
 #include <spiffing/lacv.h>
+#include <spiffing/categoryref.h>
 
 #include <string>
+#include <set>
 
 namespace Spiffing {
   class CategoryData {
@@ -37,8 +39,10 @@ namespace Spiffing {
     CategoryData(std::string const & tagSetRef, TagType tagType, Lacv const & l);
     CategoryData(std::string const & tagSetRef, TagType tagType);
 
-    bool matches(Category const &) const;
+    void compile(Spif const &);
+    bool matches(Label const &) const;
   private:
+    std::set<CategoryRef> m_cats;
     std::string m_tagSetRef;
     TagType m_tagType;
     Lacv m_lacv;

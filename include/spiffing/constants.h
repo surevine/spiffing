@@ -58,6 +58,8 @@ namespace Spiffing {
 	class CategoryRef;
 	class Lacv;
 	class Marking;
+	class CategoryData;
+	class CategoryGroup;
 }
 
 #endif

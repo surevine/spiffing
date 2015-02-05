@@ -1,7 +1,7 @@
 /***
 
-Copyright 2014 Dave Cridland
-Copyright 2014 Surevine Ltd
+Copyright 2014-2015 Dave Cridland
+Copyright 2014-2015 Surevine Ltd
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in
@@ -26,6 +26,7 @@ SOFTWARE.
 #include <spiffing/tagset.h>
 #include <spiffing/tag.h>
 #include <spiffing/category.h>
+#include <spiffing/categoryref.h>
 
 using namespace Spiffing;
 
@@ -39,4 +40,20 @@ void TagSet::addTag(std::shared_ptr<Tag> const & t) {
 
 void TagSet::addCategory(Tag const & tag, std::shared_ptr<Category> const & cat) {
 	m_cats[std::make_pair(tag.tagType(), cat->lacv())] = cat;
+}
+
+std::set<CategoryRef> TagSet::categories(TagType tt) const {
+	std::set<CategoryRef> cats;
+	for (auto const & i : m_cats) {
+		if (i.first.first == tt) {
+			cats.insert(CategoryRef(i.second));
+		}
+	}
+	return cats;
+}
+
+void TagSet::compile(Spif const & spif) {
+	for (auto const & i : m_cats) {
+		i.second->compile(spif);
+	}
 }

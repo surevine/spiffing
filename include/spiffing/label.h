@@ -1,7 +1,7 @@
 /***
 
-Copyright 2014 Dave Cridland
-Copyright 2014 Surevine Ltd
+Copyright 2014-2015 Dave Cridland
+Copyright 2014-2015 Surevine Ltd
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in
@@ -39,8 +39,8 @@ namespace Spiffing {
 		void parse(std::string const & label, Format fmt);
 		void write(Format fmt, std::string & output);
 
-		std::shared_ptr<Classification> const & classification() const {
-			return m_class;
+		Classification const & classification() const {
+			return *m_class;
 		}
 		std::string const & policy_id() const {
 			return m_policy_id;
@@ -48,6 +48,7 @@ namespace Spiffing {
 		std::set<CategoryRef> const & categories() const {
 			return m_cats;
 		}
+		bool hasCategory(CategoryRef const & c) const;
 		Spif const & policy() const {
 			return m_policy;
 		}

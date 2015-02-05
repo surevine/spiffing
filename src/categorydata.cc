@@ -27,6 +27,9 @@ SOFTWARE.
 #include <spiffing/category.h>
 #include <spiffing/tag.h>
 #include <spiffing/tagset.h>
+#include <spiffing/categoryref.h>
+#include <spiffing/spif.h>
+#include <spiffing/label.h>
 
 using namespace Spiffing;
 
@@ -38,15 +41,20 @@ CategoryData::CategoryData(std::string const & tagSetRef, TagType tagType, Lacv 
   : m_tagSetRef(tagSetRef), m_tagType(tagType), m_lacv(l), m_all(false) {
 }
 
-bool CategoryData::matches(Category const & c) const {
-  if (c.tag().tagType() != m_tagType) {
-    return false;
+bool CategoryData::matches(Label const & l) const {
+  bool ok = true;
+  for (auto c : m_cats) if (!l.hasCategory(c)) {
+    ok = false;
+    break;
   }
-  if (!m_all && c.lacv() != m_lacv) {
-    return false;
+  return ok;
+}
+
+void CategoryData::compile(Spif const & spif) {
+  auto tagSet = spif.tagSetLookupByName(m_tagSetRef);
+  if (m_all) {
+    m_cats = tagSet->categories(m_tagType);
+  } else {
+    m_cats.insert(tagSet->categoryLookup(m_tagType, m_lacv));
   }
-  if (c.tag().tagSet().name() != m_tagSetRef) {
-    return false;
-  }
-  return true;
 }

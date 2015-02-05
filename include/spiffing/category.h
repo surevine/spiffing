@@ -48,8 +48,11 @@ namespace Spiffing {
         Tag const & tag() const {
           return m_tag;
         }
-        bool valid(Classification const & c) const;
+        bool valid(Label const & label) const;
+        void compile(Spif const & spif);
         void excluded(Classification const & c);
+        void excluded(std::unique_ptr<CategoryData> && cd);
+        void required(std::unique_ptr<CategoryGroup> && cg);
 
     private:
         Lacv m_lacv;
@@ -57,6 +60,8 @@ namespace Spiffing {
         Tag & m_tag;
         size_t m_ordinal;
         std::set<lacv_t> m_excludedClass;
+        std::set<std::unique_ptr<CategoryGroup>> m_required;
+        std::set<std::unique_ptr<CategoryData>> m_excluded;
     };
 }
 
