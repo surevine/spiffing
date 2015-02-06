@@ -77,7 +77,6 @@ void Label::write(Format fmt, std::string & output) {
 }
 
 void Label::addCategory(std::shared_ptr<Category> const & cat) {
-	if (!cat->valid(*m_class)) throw std::runtime_error("Invalid category in label");
 	m_cats.insert(cat);
 }
 
@@ -235,4 +234,8 @@ void Label::write_ber(std::string & output) {
 	asn_label->security_categories = Internal::catencode(m_cats);
 	// Actual encoding.
 	der_encode(&asn_DEF_ESSSecurityLabel, &*asn_label, Internal::write_to_string, &output);
+}
+
+bool Label::hasCategory(CategoryRef const & r) const {
+	return m_cats.find(r) != m_cats.end();
 }

@@ -31,10 +31,10 @@ using namespace Spiffing;
 
 CategoryGroup::CategoryGroup(OperationType opType) : m_opType(opType) {}
 
-bool CategoryGroup::matches(Category const & c) const {
+bool CategoryGroup::matches(Label const & l) const {
   bool found{false};
   for (auto const & cd : m_categoryData) {
-    if (cd->matches(c)) {
+    if (cd->matches(l)) {
       switch (m_opType) {
       case OperationType::onlyOne:
         if (found) return false;
@@ -50,6 +50,12 @@ bool CategoryGroup::matches(Category const & c) const {
   return found;
 }
 
-void CategoryGroup::addCategoryData(std::unique_ptr<CategoryData> cd) {
+void CategoryGroup::addCategoryData(std::unique_ptr<CategoryData> &&cd) {
   m_categoryData.insert(std::move(cd));
+}
+
+void CategoryGroup::compile(Spif const & spif) {
+  for (auto & cd : m_categoryData) {
+    cd->compile(spif);
+  }
 }

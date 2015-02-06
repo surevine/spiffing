@@ -1,7 +1,7 @@
 /***
 
-Copyright 2014 Dave Cridland
-Copyright 2014 Surevine Ltd
+Copyright 2014-2015 Dave Cridland
+Copyright 2014-2015 Surevine Ltd
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in
@@ -34,6 +34,8 @@ namespace Spiffing {
   class CategoryRef {
   public:
     CategoryRef(std::shared_ptr<Category> const & cat) : m_cat(cat) {}
+    CategoryRef(CategoryRef const & other) : m_cat(other.m_cat) {}
+    CategoryRef(CategoryRef && other) : m_cat(std::move(other.m_cat)) {}
     Category & operator * () { return *m_cat; }
     Category const & operator * () const { return *m_cat; }
     Category * operator -> () { return &*m_cat; }

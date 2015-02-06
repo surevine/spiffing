@@ -26,6 +26,9 @@ SOFTWARE.
 #include <spiffing/category.h>
 #include <spiffing/classification.h>
 #include <spiffing/tag.h>
+#include <spiffing/categorydata.h>
+#include <spiffing/categorygroup.h>
+#include <spiffing/label.h>
 
 using namespace Spiffing;
 
@@ -33,14 +36,38 @@ Category::Category(Tag & tag, std::string const & name, Lacv const & lacv, size_
 : m_tag(tag), m_name(name), m_lacv(lacv), m_ordinal(ordinal) {
 }
 
-bool Category::valid(Classification const & c) const {
-  if (!m_tag.valid(c)) return false;
-  return m_excludedClass.find(c.lacv()) == m_excludedClass.end();
-}
-
 void Category::excluded(Classification const & c) {
   auto ins = m_excludedClass.insert(c.lacv());
   if (!ins.second) {
     // Duplicate, but identical, excludedClass?
+  }
+}
+
+void Category::excluded(std::unique_ptr<CategoryData> && cd) {
+  m_excluded.insert(std::move(cd));
+}
+
+void Category::required(std::unique_ptr<CategoryGroup> && cg) {
+  m_required.insert(std::move(cg));
+}
+
+bool Category::valid(Label const & label) const {
+  if (!m_tag.valid(label.classification())) return false;
+  if (m_excludedClass.find(label.classification().lacv()) != m_excludedClass.end()) return false;
+  for (auto & excl : m_excluded) {
+    if (excl->matches(label)) return false;
+  }
+  for (auto & req : m_required) {
+    if (!req->matches(label)) return false;
+  }
+  return true;
+}
+
+void Category::compile(Spif const & spif) {
+  for (auto & excl : m_excluded) {
+    excl->compile(spif);
+  }
+  for (auto & req : m_required) {
+    req->compile(spif);
   }
 }

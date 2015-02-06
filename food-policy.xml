@@ -6,8 +6,8 @@
 				<code>pageTopBottom</code>
 			</markingCode>
 		</securityClassification>
-		<securityClassification name="Commodity" color="#EEE8AA" lacv="51" hierarchy="1" obsolete="false"/>
-		<securityClassification name="Luxury" color="#EEE8AA" lacv="52" hierarchy="2" obsolete="false"/>
+		<securityClassification name="Commodity" color="white" lacv="51" hierarchy="1" obsolete="false"/>
+		<securityClassification name="Luxury" color="red" lacv="52" hierarchy="2" obsolete="false"/>
 	</securityClassifications>
 	<securityCategoryTagSets>
 		<securityCategoryTagSet name="Taste Sensations" id='1.2.826.0.1.6726289.0.0.1'>
@@ -20,7 +20,11 @@
 				<tagCategory name="Sweet" lacv='3'/>
 				<tagCategory name="Salty" lacv='4'/>
 				<tagCategory name="Meaty" lacv='5'/>
-				<tagCategory name="Chocolate" lacv="6"/>
+				<tagCategory name="Chocolate" lacv="6">
+					<excludedClass>Commodity</excludedClass>
+					<excludedCategory tagSetRef='Ethics' tagType='permissive' all='true'/>
+					<excludedCategory tagSetRef='Taste Sensations' tagType='permissive' lacv='5'/>
+				</tagCategory>
 			</securityCategoryTag>
 			<securityCategoryTag name="Colour" tagType="enumerated" enumType="permissive">
 				<tagCategory name="Red" lacv='0'/>

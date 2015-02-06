@@ -1,7 +1,7 @@
 /***
 
-Copyright 2014 Dave Cridland
-Copyright 2014 Surevine Ltd
+Copyright 2014-2015 Dave Cridland
+Copyright 2014-2015 Surevine Ltd
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in
@@ -47,6 +47,7 @@ namespace Spiffing {
 		}
 		void addRequiredCategory(std::unique_ptr<CategoryGroup> reqCats);
 		void addMarking(std::unique_ptr<Marking> marking);
+		void compile(Spif const &);
 	private:
 		lacv_t m_lacv;
 		std::string const m_name;
