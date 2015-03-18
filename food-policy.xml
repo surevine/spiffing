@@ -19,10 +19,11 @@
 			<securityCategoryTag name="Flavour" tagType="permissive">
 				<tagCategory name="Sweet" lacv='3'/>
 				<tagCategory name="Salty" lacv='4'/>
-				<tagCategory name="Meaty" lacv='5'/>
+				<tagCategory name="Meaty" lacv='5'>
+					<excludedCategory tagSetRef='Ethics' tagType='permissive' all='true'/>
+				</tagCategory>
 				<tagCategory name="Chocolate" lacv="6">
 					<excludedClass>Commodity</excludedClass>
-					<excludedCategory tagSetRef='Ethics' tagType='permissive' all='true'/>
 					<excludedCategory tagSetRef='Taste Sensations' tagType='permissive' lacv='5'/>
 				</tagCategory>
 			</securityCategoryTag>
