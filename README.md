@@ -26,7 +26,7 @@ On the list:
 
 You can just do `make pre-build`; or you may wish to run things manually:
 
-__Note:__ This library uses [asn1c](https://github.com/vlm/asn1c) from a dependency. In order to build this firstly download submodules:
+__Note:__ This library uses a fork of [asn1c](https://github.com/dwd/asn1c) from a dependency. In order to build this firstly download submodules:
 
 ```
 git submodule update --init
@@ -78,4 +78,4 @@ and any bugs) in ./reports/
 
 `make quick-tests` just runs the tests themselves.
 
-The tests themselves are defined in tests.xml
+The tests themselves are defined in test-data/tests.xml

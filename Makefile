@@ -7,6 +7,17 @@ ASN1C?=$(W_DIR)/deps/asn1c/asn1c/asn1c -S $(W_DIR)/deps/asn1c/skeletons
 all: spifflicator transpifferizer $(SPIFFINGBUILD)/libspiffing.a
 	@echo "That's all folks."
 
+help:
+	@echo "Sensible targets are:"
+	@echo "  all: [default] Build the tools and library"
+	@echo "  pre-build: Do everything that needs doing first"
+	@echo "  test: Build the test tool"
+	@echo "  quick-tests: Run a test sequence"
+	@echo "  tests: Run a lengthy tests sequence and build reports"
+	@echo "  help: Lists sensible targets"
+	@echo "  travis: If you're Travis-CI, run this first"
+	@echo "  submodules: Initialise and update submodules"
+
 travis:
 	add-apt-repository -y ppa:ubuntu-toolchain-r/test
 	apt-get update -qq
