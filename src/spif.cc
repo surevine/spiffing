@@ -1,7 +1,7 @@
 /***
 
-Copyright 2014 Dave Cridland
-Copyright 2014 Surevine Ltd
+Copyright 2014-2015 Dave Cridland
+Copyright 2014-2015 Surevine Ltd
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in
@@ -34,6 +34,8 @@ SOFTWARE.
 #include <INTEGER.h>
 #include <spiffing/catutils.h>
 #include <spiffing/marking.h>
+#include <spiffing/categorydata.h>
+#include <spiffing/categorygroup.h>
 
 using namespace Spiffing;
 
@@ -53,17 +55,6 @@ Spif::Spif(std::istream & s, Format fmt)
 }
 
 namespace {
-	std::shared_ptr<Classification> parseClassification(rapidxml::xml_node<> * classification) {
-		auto lacv_a = classification->first_attribute("lacv");
-		lacv_t lacv{strtoull(lacv_a->value(), NULL, 10)};
-		auto name_a = classification->first_attribute("name");
-		std::string name{name_a->value()};
-		auto hierarchy_a = classification->first_attribute("hierarchy");
-		unsigned long hierarchy{strtoul(hierarchy_a->value(), NULL, 10)};
-		std::shared_ptr<Classification> cls{new Classification(lacv, name, hierarchy)};
-		return cls;
-	}
-
 	Lacv parseLacv(rapidxml::xml_attribute<> * lacv) {
 		return Lacv::parse(std::string{(char *)lacv->value(), lacv->value_size()});
 	}
@@ -92,41 +83,122 @@ namespace {
 		return ptr;
 	}
 
-	std::shared_ptr<TagSet> parseTagSet(rapidxml::xml_node<> * tagSet, size_t & ordinal) {
+	TagType parseTagType(rapidxml::xml_node<> * node) {
+		auto tagType_a = node->first_attribute("tagType");
+		if (!tagType_a) throw std::runtime_error("element has no tagType");
+		std::string tagTypeName = tagType_a->value();
+		TagType tagType;
+		if (tagTypeName == "permissive") {
+			tagType = TagType::permissive;
+		} else if (tagTypeName == "restrictive") {
+			tagType = TagType::restrictive;
+		} else if (tagTypeName == "enumerated") {
+			auto enumType_a = node->first_attribute("enumType");
+			if (!enumType_a) throw std::runtime_error("securityCategoryTag has no enumType");
+			std::string enumTypeName = enumType_a->value();
+			if (enumTypeName == "permissive") {
+				tagType = TagType::enumeratedPermissive;
+			} else {
+				tagType = TagType::enumeratedRestrictive;
+			}
+		} else {
+			// TODO :: tagType7; ignored for now.
+			return TagType::informationalBitSet;
+		}
+		return tagType;
+	}
+
+	// For excludedCategory, also used within categoryGroup.
+	std::unique_ptr<CategoryData> parseOptionalCategoryData(rapidxml::xml_node<> * node) {
+		std::string tagSetRef;
+		auto tagSetRef_a = node->first_attribute("tagSetRef");
+		if (tagSetRef_a) {
+			tagSetRef = tagSetRef_a->value();
+		} else {
+			throw std::runtime_error("Missing tagSetRef in OptionalCategoryData");
+		}
+		TagType tagType = parseTagType(node);
+		auto lacv_a = node->first_attribute("lacv");
+		if (lacv_a) {
+			Lacv l{parseLacv(lacv_a)};
+			return std::unique_ptr<CategoryData>(new CategoryData(tagSetRef, tagType, l));
+		} else {
+			return std::unique_ptr<CategoryData>(new CategoryData(tagSetRef, tagType));
+		}
+	}
+
+	// For requiredCategory
+	std::unique_ptr<CategoryGroup> parseCategoryGroup(rapidxml::xml_node<> * node) {
+		auto op_a = node->first_attribute("operation");
+		std::string opname{op_a->value(), op_a->value_size()};
+		OperationType opType{OperationType::onlyOne};
+		if (opname == "onlyOne") {
+			opType = OperationType::onlyOne;
+		} else if (opname == "oneOrMore") {
+			opType = OperationType::oneOrMore;
+		} else if (opname == "all") {
+			opType = OperationType::all;
+		}
+		std::unique_ptr<CategoryGroup> group(new CategoryGroup(opType));
+		for (auto cd = node->first_node("categoryGroup"); cd; cd = cd->next_sibling("categoryGroup")) {
+			group->addCategoryData(parseOptionalCategoryData(cd));
+		}
+		return group;
+	}
+
+	template<typename T>
+	void parseExcludedClass(rapidxml::xml_node<> * node, T & t, std::map<std::string,std::shared_ptr<Classification>> const & classNames) {
+		for (auto excClass = node->first_node("excludedClass"); excClass; excClass = excClass->next_sibling("excludedClass")) {
+			if (!excClass->value() || !excClass->value_size()) throw std::runtime_error("Empty excludedClass element");
+			std::string className{excClass->value(), excClass->value_size()};
+			auto it = classNames.find(className);
+			if (it == classNames.end()) throw std::runtime_error("Unknown classification in exclusion");
+			t->excluded(*(*it).second);
+		}
+	}
+
+	std::shared_ptr<Classification> parseClassification(rapidxml::xml_node<> * classification) {
+		auto lacv_a = classification->first_attribute("lacv");
+		lacv_t lacv{strtoull(lacv_a->value(), NULL, 10)};
+		auto name_a = classification->first_attribute("name");
+		std::string name{name_a->value()};
+		auto hierarchy_a = classification->first_attribute("hierarchy");
+		unsigned long hierarchy{strtoul(hierarchy_a->value(), NULL, 10)};
+		std::shared_ptr<Classification> cls{new Classification(lacv, name, hierarchy)};
+		for (auto reqCat = classification->first_node("requiredCategory"); reqCat; reqCat = reqCat->next_sibling("requiredCategory")) {
+			cls->addRequiredCategory(parseCategoryGroup(reqCat));
+		}
+		cls->addMarking(parseMarking(classification));
+		return cls;
+	}
+
+	std::shared_ptr<TagSet> parseTagSet(rapidxml::xml_node<> * tagSet, size_t & ordinal, std::map<std::string,std::shared_ptr<Classification>> const & classNames) {
 		auto id_a = tagSet->first_attribute("id");
 		auto name_a = tagSet->first_attribute("name");
 		std::shared_ptr<TagSet> ts{new TagSet(id_a->value(), name_a->value())};
+		ts->addMarking(parseMarking(tagSet));
 		for (auto tag = tagSet->first_node("securityCategoryTag"); tag; tag = tag->next_sibling("securityCategoryTag")) {
 			auto tagName_a = tag->first_attribute("name");
 			if (!tagName_a) throw std::runtime_error("securityCategoryTag has no name");
-			auto tagType_a = tag->first_attribute("tagType");
-			if (!tagType_a) throw std::runtime_error("securityCategoryTag has no tagType");
-			std::string tagTypeName = tagType_a->value();
-			TagType tagType;
-			if (tagTypeName == "permissive") {
-				tagType = TagType::permissive;
-			} else if (tagTypeName == "restrictive") {
-				tagType = TagType::restrictive;
-			} else if (tagTypeName == "enumerated") {
-				auto enumType_a = tag->first_attribute("enumType");
-				if (!enumType_a) throw std::runtime_error("securityCategoryTag has no enumType");
-				std::string enumTypeName = enumType_a->value();
-				if (enumTypeName == "permissive") {
-					tagType = TagType::enumeratedPermissive;
-				} else {
-					tagType = TagType::enumeratedRestrictive;
-				}
-			} else {
-				// TODO :: tagType7; ignored for now.
-				continue;
-			}
+			TagType tagType = parseTagType(tag);
+			if (tagType == TagType::informationalBitSet) continue; // TODO
 			std::shared_ptr<Tag> t{new Tag(*ts, tagType, tagName_a->value())};
+			parseExcludedClass(tag, t, classNames); // TODO Not sure this is legal, really.
 			ts->addTag(t);
 			t->marking(parseMarking(tag));
 			for (auto cat = tag->first_node("tagCategory"); cat; cat = cat->next_sibling("tagCategory")) {
 				Lacv lacv = parseLacv(cat->first_attribute("lacv"));
 				std::shared_ptr<Category> c{new Category(*t, cat->first_attribute("name")->value(), lacv, ordinal++)};
+				parseExcludedClass(cat, c, classNames);
 				t->addCategory(c);
+				for (auto reqnode = cat->first_node("requiredCategory"); reqnode; reqnode = reqnode->next_sibling("requiredCategory")) {
+					std::unique_ptr<CategoryGroup> req = parseCategoryGroup(reqnode);
+					c->required(std::move(req));
+				}
+				for (auto excnode = cat->first_node("excludedCategory"); excnode; excnode = excnode->next_sibling("excludedCategory")) {
+					std::unique_ptr<CategoryData> exc = parseOptionalCategoryData(excnode);
+					c->excluded(std::move(exc));
+				}
 			}
 		}
 		return ts;
@@ -154,22 +226,35 @@ void Spif::parse(std::string const & s, Format fmt) {
 		}
 	}
 	auto securityClassifications = node->first_node("securityClassifications");
+	std::map<std::string, std::shared_ptr<Classification>> classNames;
 	for (auto classn = securityClassifications->first_node("securityClassification"); classn; classn = classn->next_sibling("securityClassification")) {
 		std::shared_ptr<Classification> c = parseClassification(classn);
 		auto ins = m_classifications.insert(std::make_pair(c->lacv(), c));
 		if (!ins.second) {
-			throw std::runtime_error("Duplicate classification ");
+			throw std::runtime_error("Duplicate classification " + c->name());
+		}
+		auto ins2 = classNames.insert(std::make_pair(c->name(), c));
+		if (!ins2.second) {
+			throw std::runtime_error("Duplicate classification name " + c->name());
 		}
 	}
 	auto securityCategoryTagSets = node->first_node("securityCategoryTagSets");
 	if (securityCategoryTagSets) {
 		size_t ordinal = 0;
 		for (auto tagSet = securityCategoryTagSets->first_node("securityCategoryTagSet"); tagSet; tagSet = tagSet->next_sibling("securityCategoryTagSet")) {
-			std::shared_ptr<TagSet> ts = parseTagSet(tagSet, ordinal);
+			std::shared_ptr<TagSet> ts = parseTagSet(tagSet, ordinal, classNames);
 			m_tagSets.insert(std::make_pair(ts->id(), ts));
+			m_tagSetsByName.insert(std::make_pair(ts->name(), ts));
 		}
 	}
 	m_marking = parseMarking(node);
+	// Once we've parsed all the tagSets, we need to "compile" the category restrictions.
+	for (auto & ts : m_tagSets) {
+		ts.second->compile(*this);
+	}
+	for (auto & cls : m_classifications) {
+		cls.second->compile(*this);
+	}
 }
 
 namespace {
@@ -206,21 +291,23 @@ std::string Spif::displayMarking(Label const & label) const {
 	std::string sep;
 	if (m_marking != nullptr) sep = m_marking->sep();
 	if (sep.empty()) sep = " "; // Default.
-	marking += label.classification()->name();
+	marking += label.classification().name();
 	categoryMarkings(marking, label.categories(), sep);
 	if (m_marking != nullptr) marking += m_marking->suffix();
 	return marking;
 }
 
 std::string Spif::displayMarking(Spiffing::Clearance const & clearance) const {
-	std::string marking{"{"};
+	std::string marking;
 	bool any{false};
 	if (clearance.policy_id() != m_oid) {
 		throw std::runtime_error("Clearance is incorrect policy");
 	}
 	std::string sep;
+	if (m_marking != nullptr) marking += m_marking->prefix();
 	if (m_marking != nullptr) sep = m_marking->sep();
 	if (sep.empty()) sep = " "; // Default.
+	marking += "{";
 	for (auto cls : clearance.classifications()) {
 		auto clsit = m_classifications.find(cls);
 		if (clsit == m_classifications.end()) {
@@ -231,7 +318,6 @@ std::string Spif::displayMarking(Spiffing::Clearance const & clearance) const {
 		} else {
 			marking += "|";
 		}
-		if (m_marking != nullptr) marking += m_marking->prefix();
 		marking += (*clsit).second->name();
 	}
 	if (!any) {
@@ -239,7 +325,6 @@ std::string Spif::displayMarking(Spiffing::Clearance const & clearance) const {
 		if (clsit == m_classifications.end()) {
 			marking += "unclassified (auto)";
 		} else {
-			if (m_marking != nullptr) marking += m_marking->prefix();
 			marking += (*clsit).second->name();
 		}
 	}
@@ -256,7 +341,7 @@ bool Spif::acdf(Label const & label, Spiffing::Clearance const & clearance) cons
 	if (label.policy_id() != m_oid) {
 		throw std::runtime_error("Label is incorrect policy");
 	}
-	if (!clearance.hasClassification(label.classification()->lacv())) return false;
+	if (!clearance.hasClassification(label.classification().lacv())) return false;
 	// Now consider each category in the label.
 	std::string permissiveTagName;
 	std::set<CategoryRef> cats;
@@ -288,4 +373,18 @@ std::shared_ptr<TagSet> const & Spif::tagSetLookup(std::string const & tagSetId)
 	auto i = m_tagSets.find(tagSetId);
 	if (i == m_tagSets.end()) throw std::runtime_error("Unknown tagset id: " + tagSetId);
 	return (*i).second;
+}
+
+std::shared_ptr<TagSet> const & Spif::tagSetLookupByName(std::string const & tagSet) const {
+	auto i = m_tagSetsByName.find(tagSet);
+	if (i == m_tagSetsByName.end()) throw std::runtime_error("Unknown tagset name: " + tagSet);
+	return (*i).second;
+}
+
+bool Spif::valid(Label const & label) const {
+	if (!label.classification().valid(label)) return false;
+	for (auto & cat : label.categories()) {
+		if (!cat->valid(label)) return false;
+	}
+	return true;
 }

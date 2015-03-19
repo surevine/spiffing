@@ -1,0 +1,77 @@
+<SPIF>
+	<securityPolicyId name="Food" id="1.2.826.0.1.6726289.0.0"/>
+	<securityClassifications>
+		<securityClassification name="Freely Available" color="#DFDFDF" lacv="50" hierarchy="0" obsolete="false">
+			<markingCode phrase='FREE'>
+				<code>pageTopBottom</code>
+			</markingCode>
+		</securityClassification>
+		<securityClassification name="Commodity" color="white" lacv="51" hierarchy="1" obsolete="false"/>
+		<securityClassification name="Luxury" color="red" lacv="52" hierarchy="2" obsolete="false">
+			<requiredCategory operation="oneOrMore">
+				<categoryGroup tagSetRef="Taste Sensations" tagType='permissive' lacv='3'/>
+				<categoryGroup tagSetRef="Taste Sensations" tagType='permissive' lacv='5'/>
+				<categoryGroup tagSetRef="Taste Sensations" tagType='permissive' lacv='6'/>
+			</requiredCategory>
+		</securityClassification>
+		<securityClassification name="Ambrosia" color="gold" lacv="53" hierarchy="3" obsolete="false"/>
+	</securityClassifications>
+	<securityCategoryTagSets>
+		<securityCategoryTagSet name="Taste Sensations" id='1.2.826.0.1.6726289.0.0.1'>
+			<securityCategoryTag name="Texture" tagType="permissive">
+				<tagCategory name="Crunchy" lacv='0'/>
+				<tagCategory name="Chewy" lacv='1'/>
+				<tagCategory name="Gooey" lacv='2'/>
+			</securityCategoryTag>
+			<securityCategoryTag name="Flavour" tagType="permissive">
+				<tagCategory name="Sweet" lacv='3'/>
+				<tagCategory name="Salty" lacv='4'/>
+				<tagCategory name="Meaty" lacv='5'>
+					<excludedCategory tagSetRef='Ethics' tagType='permissive' all='true'/>
+					<requiredCategory operation='all'>
+						<categoryGroup tagSetRef='Ethics' tagType='enumerated' enumType='restrictive' lacv='9954'/>
+					</requiredCategory>
+				</tagCategory>
+				<tagCategory name="Chocolate" lacv="6">
+					<excludedClass>Commodity</excludedClass>
+					<excludedClass>Ambrosia</excludedClass>
+					<excludedClass>Ambrosia</excludedClass><!-- Listed twice, an error. -->
+					<excludedCategory tagSetRef='Taste Sensations' tagType='permissive' lacv='5'/>
+				</tagCategory>
+			</securityCategoryTag>
+			<securityCategoryTag name="Colour" tagType="enumerated" enumType="permissive">
+				<tagCategory name="Red" lacv='0'/>
+				<tagCategory name='Green' lacv='1'/>
+				<tagCategory name='Blue' lacv='2'/>
+				<tagCategory name='Brown' lacv='3'/>
+			</securityCategoryTag>
+		</securityCategoryTagSet>
+		<securityCategoryTagSet name="Allergens" id="1.2.826.0.1.6726289.0.0.2">
+			<securityCategoryTag name="Allergens" tagType="restrictive">
+				<tagCategory name='Peanut' lacv='0'/>
+				<tagCategory name='Lactose' lacv='1'/>
+				<tagCategory name='Nut' lacv='2'/>
+				<tagCategory name='Gluten' lacv='3'/>
+				<markingQualifier code='pageTopBottom'>
+					<qualifier markingQualifier="Contains " qualifierCode="prefix"/>
+					<qualifier markingQualifier="+" qualifierCode="separator"/>
+				</markingQualifier>
+			</securityCategoryTag>
+		</securityCategoryTagSet>
+		<securityCategoryTagSet name="Ethics" id="1.2.826.0.1.6726289.0.0.3">
+			<securityCategoryTag name="Ethical Concerns" tagType="enumerated" enumType="restrictive">
+				<tagCategory name="Not Fairtrade" lacv='742'/>
+				<tagCategory name="Not Vegan" lacv='9954'/>
+			</securityCategoryTag>
+			<securityCategoryTag name="Bandwagons" tagType="permissive">
+				<tagCategory name="Animal Rights" lacv='0'/>
+				<tagCategory name="British Flag" lacv='1'/>
+				<tagCategory name="Fluffy Animals" lacv='2'/>
+			</securityCategoryTag>
+		</securityCategoryTagSet>
+	</securityCategoryTagSets>
+	<markingQualifier code='pageBottom'>
+		<qualifier markingQualifier="[ " qualifierCode="prefix"/>
+		<qualifier markingQualifier=" ]" qualifierCode="suffix"/>
+	</markingQualifier>
+</SPIF>

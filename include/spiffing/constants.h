@@ -1,7 +1,7 @@
 /***
 
-Copyright 2014 Dave Cridland
-Copyright 2014 Surevine Ltd
+Copyright 2014-2015 Dave Cridland
+Copyright 2014-2015 Surevine Ltd
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in
@@ -43,6 +43,11 @@ namespace Spiffing {
 			informationalBitSet
   };
 	typedef unsigned long lacv_t;
+	enum class OperationType {
+		onlyOne,
+		oneOrMore,
+		all
+	};
 	class Classification;
 	class Label;
 	class Clearance;
@@ -53,6 +58,8 @@ namespace Spiffing {
 	class CategoryRef;
 	class Lacv;
 	class Marking;
+	class CategoryData;
+	class CategoryGroup;
 }
 
 #endif

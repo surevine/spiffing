@@ -1,7 +1,7 @@
 /***
 
-Copyright 2014 Dave Cridland
-Copyright 2014 Surevine Ltd
+Copyright 2014-2015 Dave Cridland
+Copyright 2014-2015 Surevine Ltd
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in
@@ -26,6 +26,7 @@ SOFTWARE.
 #include <spiffing/tag.h>
 #include <spiffing/category.h>
 #include <spiffing/tagset.h>
+#include <spiffing/classification.h>
 
 using namespace Spiffing;
 
@@ -36,4 +37,15 @@ Tag::Tag(TagSet & tagSet, TagType tagType, std::string const & name)
 void Tag::addCategory(std::shared_ptr<Category> const & c) {
   m_categories[c->lacv()] = c;
   m_tagSet.addCategory(*this, c);
+}
+
+bool Tag::valid(Classification const & c) const {
+  return m_excludedClass.find(c.lacv()) == m_excludedClass.end();
+}
+
+void Tag::excluded(Classification const & c) {
+  auto ins = m_excludedClass.insert(c.lacv());
+  if (!ins.second) {
+    throw std::runtime_error("Duplicate excluded classification in tag");
+  }
 }

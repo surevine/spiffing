@@ -1,7 +1,7 @@
 /***
 
-Copyright 2014 Dave Cridland
-Copyright 2014 Surevine Ltd
+Copyright 2014-2015 Dave Cridland
+Copyright 2014-2015 Surevine Ltd
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in
@@ -28,6 +28,8 @@ SOFTWARE.
 
 #include <spiffing/constants.h>
 #include <string>
+#include <set>
+#include <memory>
 
 namespace Spiffing {
 	class Classification {
@@ -43,11 +45,17 @@ namespace Spiffing {
 		std::string const & name() const {
 			return m_name;
 		}
+		void addRequiredCategory(std::unique_ptr<CategoryGroup> reqCats);
+		void addMarking(std::unique_ptr<Marking> marking);
+		void compile(Spif const &);
+		bool valid(Label const &) const;
 	private:
 		lacv_t m_lacv;
 		std::string const m_name;
 		unsigned long m_hierarchy;
 		bool m_obsolete;
+		std::set<std::unique_ptr<CategoryGroup>> m_reqCats;
+		std::unique_ptr<Marking> m_marking;
 	};
 
 }

@@ -1,7 +1,7 @@
 /***
 
-Copyright 2014 Dave Cridland
-Copyright 2014 Surevine Ltd
+Copyright 2014-2015 Dave Cridland
+Copyright 2014-2015 Surevine Ltd
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in
@@ -33,7 +33,15 @@ using namespace Spiffing;
 
 Lacv::Lacv(std::string const & name) : m_sz_valid(false), m_name(name) {}
 
-Lacv::Lacv(size_t iname) : m_sz(iname), m_sz_valid(true), m_name() {
+Lacv::Lacv(std::size_t iname) : m_sz(iname), m_sz_valid(true), m_name() {
+  parse(iname);
+}
+
+Lacv::Lacv() : m_sz(0), m_sz_valid(true), m_name() {
+  parse(0);
+}
+
+void Lacv::parse(std::size_t iname) {
   Asn<INTEGER_t> i(&asn_DEF_INTEGER);
   std::stringstream tmp;
   tmp << iname;

@@ -1,7 +1,7 @@
 /***
 
-Copyright 2014 Dave Cridland
-Copyright 2014 Surevine Ltd
+Copyright 2014-2015 Dave Cridland
+Copyright 2014-2015 Surevine Ltd
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in
@@ -47,12 +47,15 @@ namespace Spiffing {
 		bool acdf(Label const &, Clearance const &) const;
 		std::string displayMarking(Label const &) const;
 		std::string displayMarking(Clearance const &) const;
+		bool valid(Label const & l) const;
+		void assertValid(Label const & l) const;
 
 		std::string const & policy_id() const {
 			return m_oid;
 		}
 
 		std::shared_ptr<TagSet> const & tagSetLookup(std::string const &) const;
+		std::shared_ptr<TagSet> const & tagSetLookupByName(std::string const &) const;
 		std::shared_ptr<Classification> const & classificationLookup(lacv_t cls) const {
 			auto i = m_classifications.find(cls);
 			if (i == m_classifications.end()) throw std::runtime_error("Unknown classification");
@@ -64,6 +67,7 @@ namespace Spiffing {
 		std::string m_oid;
 		std::map<lacv_t,std::shared_ptr<Classification>> m_classifications;
 		std::map<std::string /* OID */, std::shared_ptr<TagSet>> m_tagSets;
+		std::map<std::string /* Name */, std::shared_ptr<TagSet>> m_tagSetsByName;
 		std::unique_ptr<Marking> m_marking;
 	};
 }

@@ -1,7 +1,7 @@
 /***
 
-Copyright 2014 Dave Cridland
-Copyright 2014 Surevine Ltd
+Copyright 2014-2015 Dave Cridland
+Copyright 2014-2015 Surevine Ltd
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in
@@ -24,9 +24,50 @@ SOFTWARE.
 ***/
 
 #include <spiffing/category.h>
+#include <spiffing/classification.h>
+#include <spiffing/tag.h>
+#include <spiffing/categorydata.h>
+#include <spiffing/categorygroup.h>
+#include <spiffing/label.h>
 
 using namespace Spiffing;
 
 Category::Category(Tag & tag, std::string const & name, Lacv const & lacv, size_t ordinal)
 : m_tag(tag), m_name(name), m_lacv(lacv), m_ordinal(ordinal) {
+}
+
+void Category::excluded(Classification const & c) {
+  auto ins = m_excludedClass.insert(c.lacv());
+  if (!ins.second) {
+    throw std::runtime_error("Duplicate excluded classification in category");
+  }
+}
+
+void Category::excluded(std::unique_ptr<CategoryData> && cd) {
+  m_excluded.insert(std::move(cd));
+}
+
+void Category::required(std::unique_ptr<CategoryGroup> && cg) {
+  m_required.insert(std::move(cg));
+}
+
+bool Category::valid(Label const & label) const {
+  if (!m_tag.valid(label.classification())) return false;
+  if (m_excludedClass.find(label.classification().lacv()) != m_excludedClass.end()) return false;
+  for (auto & excl : m_excluded) {
+    if (excl->excl_matches(label)) return false;
+  }
+  for (auto & req : m_required) {
+    if (!req->matches(label)) return false;
+  }
+  return true;
+}
+
+void Category::compile(Spif const & spif) {
+  for (auto & excl : m_excluded) {
+    excl->compile(spif);
+  }
+  for (auto & req : m_required) {
+    req->compile(spif);
+  }
 }

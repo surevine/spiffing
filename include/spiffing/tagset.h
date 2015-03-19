@@ -1,7 +1,7 @@
 /***
 
-Copyright 2014 Dave Cridland
-Copyright 2014 Surevine Ltd
+Copyright 2014-2015 Dave Cridland
+Copyright 2014-2015 Surevine Ltd
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in
@@ -31,6 +31,7 @@ SOFTWARE.
 #include <spiffing/lacv.h>
 #include <memory>
 #include <map>
+#include <set>
 
 namespace Spiffing {
     class TagSet {
@@ -52,11 +53,15 @@ namespace Spiffing {
         }
 
         void addCategory(Tag const &, std::shared_ptr<Category> const &);
+        std::set<CategoryRef> categories(TagType type) const;
+        void compile(Spif const &);
+        void addMarking(std::unique_ptr<Marking> marking);
     private:
         std::string m_id;
         std::string m_name;
         std::map<std::string,std::shared_ptr<Tag>> m_tags;
         std::map<std::pair<TagType, Lacv>, std::shared_ptr<Category>> m_cats;
+        std::unique_ptr<Marking> m_marking;
     };
 }
 

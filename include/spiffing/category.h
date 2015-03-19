@@ -1,7 +1,7 @@
 /***
 
-Copyright 2014 Dave Cridland
-Copyright 2014 Surevine Ltd
+Copyright 2014-2015 Dave Cridland
+Copyright 2014-2015 Surevine Ltd
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in
@@ -29,6 +29,8 @@ SOFTWARE.
 #include <spiffing/constants.h>
 #include <spiffing/lacv.h>
 #include <string>
+#include <set>
+#include <memory>
 
 namespace Spiffing {
     class Category {
@@ -47,12 +49,20 @@ namespace Spiffing {
         Tag const & tag() const {
           return m_tag;
         }
+        bool valid(Label const & label) const;
+        void compile(Spif const & spif);
+        void excluded(Classification const & c);
+        void excluded(std::unique_ptr<CategoryData> && cd);
+        void required(std::unique_ptr<CategoryGroup> && cg);
 
     private:
         Lacv m_lacv;
         std::string m_name;
         Tag & m_tag;
         size_t m_ordinal;
+        std::set<lacv_t> m_excludedClass;
+        std::set<std::unique_ptr<CategoryGroup>> m_required;
+        std::set<std::unique_ptr<CategoryData>> m_excluded;
     };
 }
 

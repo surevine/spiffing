@@ -44,6 +44,7 @@ int main(int argc, char *argv[]) {
 		std::string label_str{std::istreambuf_iterator<char>(label_file), std::istreambuf_iterator<char>()};
 		Label label(spif, label_str, Format::ANY);
 		std::cout << "Label marking is '" << spif.displayMarking(label) << "'" << std::endl;
+		if (!spif.valid(label)) std::cout << "Label is not valid!" << std::endl;
 		if (argc <= 3) return 0;
 		std::ifstream clearance_file(argv[3]);
 		std::string clearance_str{std::istreambuf_iterator<char>(clearance_file), std::istreambuf_iterator<char>()};

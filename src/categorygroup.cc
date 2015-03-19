@@ -1,7 +1,7 @@
 /***
 
-Copyright 2014-2015 Dave Cridland
-Copyright 2014-2015 Surevine Ltd
+Copyright 2015 Dave Cridland
+Copyright 2015 Surevine Ltd
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in
@@ -23,41 +23,39 @@ SOFTWARE.
 
 ***/
 
-#include <spiffing/tagset.h>
-#include <spiffing/tag.h>
-#include <spiffing/category.h>
-#include <spiffing/categoryref.h>
+#include <spiffing/categorygroup.h>
+
+#include <spiffing/categorydata.h>
 
 using namespace Spiffing;
 
-TagSet::TagSet(std::string const & id, std::string const & name)
-: m_id{id}, m_name{name} {
+CategoryGroup::CategoryGroup(OperationType opType) : m_opType(opType) {}
+
+bool CategoryGroup::matches(Label const & l) const {
+  bool found{false};
+  for (auto const & cd : m_categoryData) {
+    if (cd->req_matches(l)) {
+      switch (m_opType) {
+      case OperationType::onlyOne:
+        if (found) return false;
+        break;
+      case OperationType::oneOrMore:
+        return true;
+      }
+      found = true;
+    } else if (m_opType == OperationType::all) {
+      return false;
+    }
+  }
+  return found;
 }
 
-void TagSet::addTag(std::shared_ptr<Tag> const & t) {
-	m_tags[t->name()] = t;
+void CategoryGroup::addCategoryData(std::unique_ptr<CategoryData> &&cd) {
+  m_categoryData.insert(std::move(cd));
 }
 
-void TagSet::addCategory(Tag const & tag, std::shared_ptr<Category> const & cat) {
-	m_cats[std::make_pair(tag.tagType(), cat->lacv())] = cat;
-}
-
-std::set<CategoryRef> TagSet::categories(TagType tt) const {
-	std::set<CategoryRef> cats;
-	for (auto const & i : m_cats) {
-		if (i.first.first == tt) {
-			cats.insert(CategoryRef(i.second));
-		}
-	}
-	return cats;
-}
-
-void TagSet::compile(Spif const & spif) {
-	for (auto const & i : m_cats) {
-		i.second->compile(spif);
-	}
-}
-
-void TagSet::addMarking(std::unique_ptr<Marking> marking) {
-	m_marking = std::move(marking);
+void CategoryGroup::compile(Spif const & spif) {
+  for (auto & cd : m_categoryData) {
+    cd->compile(spif);
+  }
 }

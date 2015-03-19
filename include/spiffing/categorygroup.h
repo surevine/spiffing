@@ -1,7 +1,7 @@
 /***
 
-Copyright 2014-2015 Dave Cridland
-Copyright 2014-2015 Surevine Ltd
+Copyright 2015 Dave Cridland
+Copyright 2015 Surevine Ltd
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in
@@ -23,41 +23,28 @@ SOFTWARE.
 
 ***/
 
-#include <spiffing/tagset.h>
-#include <spiffing/tag.h>
-#include <spiffing/category.h>
-#include <spiffing/categoryref.h>
+#ifndef SPIFFING_CATEGORYGROUP_H
+#define SPIFFING_CATEGORYGROUP_H
 
-using namespace Spiffing;
+#include <spiffing/constants.h>
 
-TagSet::TagSet(std::string const & id, std::string const & name)
-: m_id{id}, m_name{name} {
+#include <set>
+#include <memory>
+
+namespace Spiffing {
+  class CategoryData;
+  class CategoryGroup {
+  public:
+    CategoryGroup(OperationType opType);
+
+    bool matches(Label const &) const;
+    void compile(Spif const & spif);
+
+    void addCategoryData(std::unique_ptr<CategoryData> &&);
+  private:
+    std::set<std::unique_ptr<CategoryData>> m_categoryData;
+    OperationType m_opType;
+  };
 }
 
-void TagSet::addTag(std::shared_ptr<Tag> const & t) {
-	m_tags[t->name()] = t;
-}
-
-void TagSet::addCategory(Tag const & tag, std::shared_ptr<Category> const & cat) {
-	m_cats[std::make_pair(tag.tagType(), cat->lacv())] = cat;
-}
-
-std::set<CategoryRef> TagSet::categories(TagType tt) const {
-	std::set<CategoryRef> cats;
-	for (auto const & i : m_cats) {
-		if (i.first.first == tt) {
-			cats.insert(CategoryRef(i.second));
-		}
-	}
-	return cats;
-}
-
-void TagSet::compile(Spif const & spif) {
-	for (auto const & i : m_cats) {
-		i.second->compile(spif);
-	}
-}
-
-void TagSet::addMarking(std::unique_ptr<Marking> marking) {
-	m_marking = std::move(marking);
-}
+#endif
