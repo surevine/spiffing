@@ -48,6 +48,7 @@ namespace Spiffing {
 		void addRequiredCategory(std::unique_ptr<CategoryGroup> reqCats);
 		void addMarking(std::unique_ptr<Marking> marking);
 		void compile(Spif const &);
+		bool valid(Label const &) const;
 	private:
 		lacv_t m_lacv;
 		std::string const m_name;

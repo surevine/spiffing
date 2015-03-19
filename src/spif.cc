@@ -140,7 +140,7 @@ namespace {
 			opType = OperationType::all;
 		}
 		std::unique_ptr<CategoryGroup> group(new CategoryGroup(opType));
-		for (auto cd = node->first_node("categoryGroup"); cd; cd->next_sibling("categoryGroup")) {
+		for (auto cd = node->first_node("categoryGroup"); cd; cd = cd->next_sibling("categoryGroup")) {
 			group->addCategoryData(parseOptionalCategoryData(cd));
 		}
 		return group;
@@ -165,7 +165,7 @@ namespace {
 		auto hierarchy_a = classification->first_attribute("hierarchy");
 		unsigned long hierarchy{strtoul(hierarchy_a->value(), NULL, 10)};
 		std::shared_ptr<Classification> cls{new Classification(lacv, name, hierarchy)};
-		for (auto reqCat = classification->first_node("requiredCategory"); reqCat; reqCat->next_sibling("requiredCategory")) {
+		for (auto reqCat = classification->first_node("requiredCategory"); reqCat; reqCat = reqCat->next_sibling("requiredCategory")) {
 			cls->addRequiredCategory(parseCategoryGroup(reqCat));
 		}
 		cls->addMarking(parseMarking(classification));
@@ -382,6 +382,7 @@ std::shared_ptr<TagSet> const & Spif::tagSetLookupByName(std::string const & tag
 }
 
 bool Spif::valid(Label const & label) const {
+	if (!label.classification().valid(label)) return false;
 	for (auto & cat : label.categories()) {
 		if (!cat->valid(label)) return false;
 	}

@@ -24,7 +24,9 @@ On the list:
 
 ## Pre-Build
 
-You can just do `make pre-build`; or you may wish to run things manually:
+Just do `make pre-build`
+
+You may, however, wish to run things manually:
 
 __Note:__ This library uses a fork of [asn1c](https://github.com/dwd/asn1c) from a dependency. In order to build this firstly download submodules:
 

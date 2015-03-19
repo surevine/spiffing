@@ -38,11 +38,21 @@ bool Classification::operator < (Classification const & c) const {
 	return m_hierarchy < c.m_hierarchy;
 }
 
-void Classification::compile(Spif const &) {
-}
-
 void Classification::addRequiredCategory(std::unique_ptr<CategoryGroup> reqCats) {
 	m_reqCats.insert(std::move(reqCats));
+}
+
+void Classification::compile(Spif const & spif) {
+	for (auto & req : m_reqCats) {
+		req->compile(spif);
+	}
+}
+
+bool Classification::valid(Label const & label) const {
+	for (auto const & req : m_reqCats) {
+		if (!req->matches(label)) return false;
+	}
+	return true;
 }
 
 void Classification::addMarking(std::unique_ptr<Marking> marking) {

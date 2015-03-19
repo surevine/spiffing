@@ -35,6 +35,7 @@
 				<tagCategory name="Chocolate" lacv="6">
 					<excludedClass>Commodity</excludedClass>
 					<excludedClass>Ambrosia</excludedClass>
+					<excludedClass>Ambrosia</excludedClass><!-- Listed twice, an error. -->
 					<excludedCategory tagSetRef='Taste Sensations' tagType='permissive' lacv='5'/>
 				</tagCategory>
 			</securityCategoryTag>

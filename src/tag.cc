@@ -46,6 +46,6 @@ bool Tag::valid(Classification const & c) const {
 void Tag::excluded(Classification const & c) {
   auto ins = m_excludedClass.insert(c.lacv());
   if (!ins.second) {
-    // Duplicate, but identical, excludedClass?
+    throw std::runtime_error("Duplicate excluded classification in tag");
   }
 }
