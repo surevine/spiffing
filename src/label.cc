@@ -106,6 +106,8 @@ void Label::parse_ber(std::string const & label) {
 				Internal::parse_cat<Label,RestrictiveTag_t>(TagType::restrictive, &asn_DEF_RestrictiveTag, *this, &asn_label->security_categories->list.array[i]->value);
 			} else if (tagType == "2.16.840.1.101.2.1.8.3.2") { // Permissive.
 				Internal::parse_cat<Label,PermissiveTag_t>(TagType::permissive, &asn_DEF_PermissiveTag, *this, &asn_label->security_categories->list.array[i]->value);
+			} else if (tagType == "2.16.840.1.101.2.1.8.3.3") { // Informative
+				Internal::parse_info_cat<Label>(*this, &asn_label->security_categories->list.array[i]->value);
 			}
 		}
 	}

@@ -25,6 +25,7 @@ SOFTWARE.
 
 #include <ESSSecurityLabel.h>
 #include <EnumeratedTag.h>
+#include <InformativeTag.h>
 #include <iostream>
 #include <string>
 #include <fstream>
@@ -82,10 +83,19 @@ main(int argc, char *argv[]) {
 							std::cout << "Category Value: " << lacv << std::endl;
 						}
 					}
+				} else if (tagType == "2.16.840.1.101.2.1.8.3.3") {
+					InformativeTag_t * tag = 0;
+					auto r = ANY_to_type(&asn_label->security_categories->list.array[i]->value, &asn_DEF_InformativeTag, (void **)&tag);
+					if (r != RC_OK) {
+						throw std::runtime_error("Blah2");
+					}
+					std::string tagName;
+					asn_DEF_OBJECT_IDENTIFIER.xer_encoder(&asn_DEF_OBJECT_IDENTIFIER, &tag->tagName, 0, XER_F_BASIC, write_to_string, &tagName);
+					std::cout << "Informative Category OID: " << tagName << std::endl;
 				}
 			}
 		}
-	} catch(...) {
-		std::cerr << "Dude! Exception!" << std::endl;
+	} catch(std::exception & e) {
+		std::cerr << "Dude! Exception: " << e.what() << std::endl;
 	}
 }

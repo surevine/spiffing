@@ -94,7 +94,7 @@ namespace {
 			tagType = TagType::restrictive;
 		} else if (tagTypeName == "enumerated") {
 			auto enumType_a = node->first_attribute("enumType");
-			if (!enumType_a) throw std::runtime_error("securityCategoryTag has no enumType");
+			if (!enumType_a) throw std::runtime_error("element has no enumType");
 			std::string enumTypeName = enumType_a->value();
 			if (enumTypeName == "permissive") {
 				tagType = TagType::enumeratedPermissive;
@@ -102,8 +102,14 @@ namespace {
 				tagType = TagType::enumeratedRestrictive;
 			}
 		} else {
-			// TODO :: tagType7; ignored for now.
-			return TagType::informationalBitSet;
+			auto t7type_a = node->first_attribute("tag7Encoding");
+			if (!t7type_a) throw std::runtime_error("element has no tag7Encoding");
+			std::string t7type = t7type_a->value();
+			if (t7type == "bitSetAttributes") {
+				tagType = TagType::informationalBitSet;
+			} else {
+				tagType = TagType::informationalAttributes;
+			}
 		}
 		return tagType;
 	}
@@ -181,7 +187,6 @@ namespace {
 			auto tagName_a = tag->first_attribute("name");
 			if (!tagName_a) throw std::runtime_error("securityCategoryTag has no name");
 			TagType tagType = parseTagType(tag);
-			if (tagType == TagType::informationalBitSet) continue; // TODO
 			std::shared_ptr<Tag> t{new Tag(*ts, tagType, tagName_a->value())};
 			parseExcludedClass(tag, t, classNames); // TODO Not sure this is legal, really.
 			ts->addTag(t);
