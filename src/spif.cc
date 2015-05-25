@@ -102,14 +102,7 @@ namespace {
 				tagType = TagType::enumeratedRestrictive;
 			}
 		} else {
-			auto t7type_a = node->first_attribute("tag7Encoding");
-			if (!t7type_a) throw std::runtime_error("element has no tag7Encoding");
-			std::string t7type = t7type_a->value();
-			if (t7type == "bitSetAttributes") {
-				tagType = TagType::informationalBitSet;
-			} else {
-				tagType = TagType::informationalAttributes;
-			}
+			tagType = TagType::informative;
 		}
 		return tagType;
 	}
@@ -187,7 +180,18 @@ namespace {
 			auto tagName_a = tag->first_attribute("name");
 			if (!tagName_a) throw std::runtime_error("securityCategoryTag has no name");
 			TagType tagType = parseTagType(tag);
-			std::shared_ptr<Tag> t{new Tag(*ts, tagType, tagName_a->value())};
+			InformativeEncoding t7enc = InformativeEncoding::notApplicable;
+			if (tagType == TagType::informative) {
+				auto t7type_a = tag->first_attribute("tag7Encoding");
+				if (!t7type_a) throw std::runtime_error("element has no tag7Encoding");
+				std::string t7type = t7type_a->value();
+				if (t7type == "bitSetAttributes") {
+					t7enc = InformativeEncoding::bitSet;
+				} else {
+					t7enc = InformativeEncoding::enumerated;
+				}
+			}
+			std::shared_ptr<Tag> t{new Tag(*ts, tagType, t7enc, tagName_a->value())};
 			parseExcludedClass(tag, t, classNames); // TODO Not sure this is legal, really.
 			ts->addTag(t);
 			t->marking(parseMarking(tag));

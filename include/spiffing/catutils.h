@@ -121,7 +121,7 @@ namespace Spiffing {
         for (size_t ii{0}; ii != tag->field.choice.securityAttributes.list.count; ++ii) {
           auto n = tag->field.choice.securityAttributes.list.array[ii];
           Lacv catLacv{std::string((char *)n->buf, n->size)};
-          auto cat = object.policy().tagSetLookup(tagSetName)->categoryLookup(TagType::informationalAttributes, catLacv);
+          auto cat = object.policy().tagSetLookup(tagSetName)->categoryLookup(TagType::informative, catLacv);
           object.addCategory(cat);
         }
       } else {
@@ -130,7 +130,7 @@ namespace Spiffing {
           for (int ij{0}; ij != 8; ++ij) {
             if (tag->field.choice.bitSetAttributes.buf[ii] & (1 << (7 - ij))) {
               Lacv catLacv{(ii*8 + ij)};
-              auto cat = object.policy().tagSetLookup(tagSetName)->categoryLookup(TagType::informationalBitSet, catLacv);
+              auto cat = object.policy().tagSetLookup(tagSetName)->categoryLookup(TagType::informative, catLacv);
               object.addCategory(cat);
             }
           }

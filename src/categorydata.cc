@@ -45,7 +45,10 @@ bool CategoryData::req_matches(Label const & l) const {
   bool ok = true;
   for (auto c : m_cats) if (!l.hasCategory(c)) {
     ok = false;
-    break;
+    if (!m_all) break;
+  } else if (m_all) {
+    // all="true" is used to mean "any" in requirements.
+    return true;
   }
   return ok;
 }

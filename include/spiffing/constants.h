@@ -39,9 +39,13 @@ namespace Spiffing {
       enumeratedPermissive,
       enumeratedRestrictive,
       permissive,
-      informationalAttributes,
-			informationalBitSet
+      informative
   };
+	enum class InformativeEncoding {
+		notApplicable,
+		enumerated,
+		bitSet
+	};
 	typedef unsigned long lacv_t;
 	enum class OperationType {
 		onlyOne,
