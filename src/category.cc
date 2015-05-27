@@ -55,7 +55,7 @@ bool Category::valid(Label const & label) const {
   if (!m_tag.valid(label.classification())) return false;
   if (m_excludedClass.find(label.classification().lacv()) != m_excludedClass.end()) return false;
   for (auto & excl : m_excluded) {
-    if (excl->excl_matches(label)) return false;
+    if (excl->matches(label)) return false;
   }
   for (auto & req : m_required) {
     if (!req->matches(label)) return false;

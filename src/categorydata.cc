@@ -41,19 +41,7 @@ CategoryData::CategoryData(std::string const & tagSetRef, TagType tagType, Lacv 
   : m_tagSetRef(tagSetRef), m_tagType(tagType), m_lacv(l), m_all(false) {
 }
 
-bool CategoryData::req_matches(Label const & l) const {
-  bool ok = true;
-  for (auto c : m_cats) if (!l.hasCategory(c)) {
-    ok = false;
-    if (!m_all) break;
-  } else if (m_all) {
-    // all="true" is used to mean "any" in requirements.
-    return true;
-  }
-  return ok;
-}
-
-bool CategoryData::excl_matches(Label const & l) const {
+bool CategoryData::matches(Label const & l) const {
   bool ok = false;
   for (auto c : m_cats) if (l.hasCategory(c)) {
     ok = true;

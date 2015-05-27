@@ -34,7 +34,7 @@ CategoryGroup::CategoryGroup(OperationType opType) : m_opType(opType) {}
 bool CategoryGroup::matches(Label const & l) const {
   bool found{false};
   for (auto const & cd : m_categoryData) {
-    if (cd->req_matches(l)) {
+    if (cd->matches(l)) {
       switch (m_opType) {
       case OperationType::onlyOne:
         if (found) return false;
