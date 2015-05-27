@@ -54,7 +54,3 @@ bool Classification::valid(Label const & label) const {
 	}
 	return true;
 }
-
-void Classification::addMarking(std::unique_ptr<Marking> marking) {
-	m_marking = std::move(marking);
-}

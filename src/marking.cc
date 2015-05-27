@@ -25,4 +25,42 @@ SOFTWARE.
 
 #include <spiffing/marking.h>
 
-Spiffing::Marking::Marking() {}
+using namespace Spiffing;
+
+namespace {
+  const std::string s_blank;
+}
+
+Marking::Marking() {}
+
+std::string const & Marking::phrase(MarkingCode loc, std::string const & p) const {
+  for (auto & i : m_phrase) {
+    if (i.first & loc) {
+      if (i.first & MarkingCode::noNameDisplay) {
+        return s_blank;
+      } else if (i.second.empty()) {
+        return p;
+      } else {
+        return i.second;
+      }
+    }
+  }
+  return p;
+}
+
+bool Marking::suppressClassName(MarkingCode loc) const {
+  for (auto & i : m_phrase) {
+    if (i.first & loc) {
+      if (i.first & MarkingCode::suppressClassName) {
+        return true;
+      } else {
+        return false;
+      }
+    }
+  }
+  return false;
+}
+
+void Marking::addPhrase(int loc, std::string const & p) {
+  m_phrase.push_back(std::pair<int,std::string>(loc,p));
+}

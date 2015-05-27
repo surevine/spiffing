@@ -45,7 +45,7 @@ namespace Spiffing {
 		void parse(std::string const &, Format fmt);
 
 		bool acdf(Label const &, Clearance const &) const;
-		std::string displayMarking(Label const &) const;
+		std::string displayMarking(Label const &, MarkingCode location = MarkingCode::pageBottom) const;
 		std::string displayMarking(Clearance const &) const;
 		bool valid(Label const & l) const;
 		void assertValid(Label const & l) const;

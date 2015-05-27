@@ -55,9 +55,8 @@ namespace Spiffing {
         Marking const & marking() const {
           return *m_marking;
         }
-        Marking const & marking(std::unique_ptr<Marking> m) {
-          m_marking.swap(m);
-          return *m_marking;
+        void marking(std::unique_ptr<Marking> && m) {
+          m_marking = std::move(m);
         }
         TagSet const & tagSet() const {
           return m_tagSet;

@@ -28,6 +28,7 @@ SOFTWARE.
 
 #include <spiffing/constants.h>
 #include <spiffing/lacv.h>
+#include <spiffing/marking.h>
 #include <string>
 #include <set>
 #include <memory>
@@ -55,6 +56,16 @@ namespace Spiffing {
         void excluded(std::unique_ptr<CategoryData> && cd);
         void required(std::unique_ptr<CategoryGroup> && cg);
 
+        bool hasMarking() const {
+          return m_marking != nullptr;
+        }
+        Marking const & marking() const {
+          return *m_marking;
+        }
+        void marking(std::unique_ptr<Marking> && m) {
+          m_marking = std::move(m);
+        }
+
     private:
         Lacv m_lacv;
         std::string m_name;
@@ -63,6 +74,7 @@ namespace Spiffing {
         std::set<lacv_t> m_excludedClass;
         std::set<std::unique_ptr<CategoryGroup>> m_required;
         std::set<std::unique_ptr<CategoryData>> m_excluded;
+        std::unique_ptr<Marking> m_marking;
     };
 }
 
