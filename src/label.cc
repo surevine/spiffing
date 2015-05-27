@@ -158,6 +158,8 @@ void Label::parse_xml(std::string const & label) {
 					type = TagType::enumeratedPermissive;
 				} else if (tag_type == "enumeratedRestrictive") {
 					type = TagType::enumeratedRestrictive;
+				} else if (tag_type == "informative") {
+					type = TagType::Informative;
 				} else throw std::runtime_error("unsupported tag type " + tag_type);
 				auto idattr = tag->first_attribute("id");
 				if (!idattr) throw std::runtime_error("tag without id");
@@ -212,6 +214,9 @@ void Label::write_xml(std::string & output) {
 			break;
 		case TagType::enumeratedRestrictive:
 			p = "enumeratedRestrictive";
+			break;
+		case TagType::Informative:
+			p = "informative";
 			break;
 		default:
 			throw std::runtime_error("Tagtype unimplemented!");

@@ -117,6 +117,54 @@ namespace {
     asn_cats->list.array[asn_cats->list.count] = asn_cat.release();
     asn_cats->list.count++;
   }
+
+  void catencodeinform(Asn<SecurityCategories_t> & asn_cats, std::set<CategoryRef> const & cats, std::set<CategoryRef>::const_iterator & i) {
+    auto const & cat = *i;
+    std::string tagSetId = cat->tag().tagSet().id();
+    TagType ttype = cat->tag().tagType();
+    Asn<SecurityCategory> asn_cat(&asn_DEF_SecurityCategory);
+    asn_cat.alloc();
+    Internal::str2oid("2.16.840.1.101.2.1.8.3.3", &asn_cat->type);
+    Asn<InformativeTag_t> asn_tag(&asn_DEF_InformativeTag);
+    asn_tag.alloc();
+    Internal::str2oid(tagSetId, &asn_tag->tagName);
+    if (cat->tag().informativeEncoding() == InformativeEncoding::enumerated) {
+      std::size_t sz = 4;
+      asn_tag->field.choice.securityAttributes.list.array = (INTEGER_t **)calloc(sizeof(INTEGER_t *), sz);
+      while (i != cats.end() && tagSetId == (*i)->tag().tagSet().id() && ttype == (*i)->tag().tagType()) {
+        if (sz <= asn_tag->field.choice.securityAttributes.list.count) {
+          std::size_t old_sz = sz;
+          while (sz <= asn_tag->field.choice.securityAttributes.list.count) sz += 4;
+          asn_tag->field.choice.securityAttributes.list.array = (INTEGER_t **)realloc(asn_tag->field.choice.securityAttributes.list.array, sz * sizeof(INTEGER_t *));
+          memset(asn_tag->field.choice.securityAttributes.list.array + old_sz, 0, (sz - old_sz) * sizeof(INTEGER_t *));
+        }
+        Asn<INTEGER_t> lacv(&asn_DEF_INTEGER);
+        lacv.alloc();
+        lacv->buf = (unsigned char *)strdup((*i)->lacv().text().c_str());
+        lacv->size = (*i)->lacv().text().size();
+        asn_tag->field.choice.securityAttributes.list.array[asn_tag->field.choice.securityAttributes.list.count] = lacv.release();
+        ++asn_tag->field.choice.securityAttributes.list.count;
+        ++i;
+      }
+    } else {
+      std::size_t sz = 4;
+      asn_tag->field.choice.bitSetAttributes.buf = (unsigned char *)calloc(sizeof(unsigned char), sz);
+      while (i != cats.end() && tagSetId == (*i)->tag().tagSet().id() && ttype == (*i)->tag().tagType()) {
+        if (sz <= ((*i)->lacv() / 8)) {
+          std::size_t old_sz = sz;
+          while (sz <= ((*i)->lacv() / 8)) sz += 4;
+          asn_tag->field.choice.bitSetAttributes.buf = (unsigned char *)realloc(asn_tag->field.choice.bitSetAttributes.buf, sz);
+          memset(asn_tag->field.choice.bitSetAttributes.buf + old_sz, 0, sz - old_sz);
+        }
+        asn_tag->field.choice.bitSetAttributes.buf[(*i)->lacv() / 8] |= (1 << (7 - ((*i)->lacv() % 8)));
+        asn_tag->field.choice.bitSetAttributes.size = ((*i)->lacv() / 8) + 1;
+        ++i;
+      }
+    }
+    ANY_fromType(&asn_cat->value, &asn_DEF_EnumeratedTag, &*asn_tag);
+    asn_cats->list.array[asn_cats->list.count] = asn_cat.release();
+    asn_cats->list.count++;
+  }
 }
 
 SecurityCategories * Internal::catencode(std::set<CategoryRef> const & cats) {
@@ -142,6 +190,9 @@ SecurityCategories * Internal::catencode(std::set<CategoryRef> const & cats) {
       break;
     case TagType::enumeratedRestrictive:
       catencodeenum(asn_cats, cats, "2.16.840.1.101.2.1.8.3.4", i);
+      break;
+    case TagType::informative:
+      catencodeinform(asn_cats, cats, i);
       break;
     default:
       ++i;
