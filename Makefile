@@ -40,17 +40,21 @@ tests: test spifflicator transpifferizer
 	@echo "Valgrind test"
 	@$(MAKE) -C test-data/ EXECUTOR="valgrind --error-exitcode=99 --leak-check=full"
 	@echo "Coverage test"
-	@$(MAKE) -C test-data/
-	@lcov --base-directory . --directory build/ --capture --output-file build/spiffing.info
-	@lcov --remove build/spiffing.info deps/*
-	@mkdir -p report/lcov/
-	@genhtml --output-directory report/lcov/ build/spiffing.info
+	@$(MAKE) coverage
 	@echo "CLang test"
 	@../llvm/tools/clang/tools/scan-build/scan-build -o report/clang --use-analyzer=../llvm-build/Debug+Asserts/bin/clang make SPIFFINGBUILD=tmp-analyzer tmp-analyzer/libspiffing.a
 	@rm -rf tmp-analyzer
 
 quick-tests: test transpifferizer
 	@$(MAKE) -C test-data/
+
+coverage: quick-tests
+	@$(MAKE) -C test-data/
+	@lcov --base-directory . --directory build/ --capture --output-file build/spiffing.info
+	@lcov --remove build/spiffing.info deps/*
+	@mkdir -p report/lcov/
+	@genhtml --output-directory report/lcov/ build/spiffing.info
+
 
 GENBERSOURCE=$(wildcard gen-ber/*.c) gen-ber/ESSSecurityLabel.c
 GENBEROBJS=$(GENBERSOURCE:.c=.o)

@@ -1,12 +1,16 @@
 EXECUTOR?=
 
+INPUTS=$(wildcard food-label*.xml) $(wildcard food-clearance*.xml)
+OUTPUTS=$(INPUTS:%.xml=%-out2.ber)
+
 all:
 	$(EXECUTOR) ../test tests.xml
-	$(EXECUTOR) ../transpifferizer food-policy.xml food-label-milk-chocolate.xml food-label-milk-chocolate-out.ber
-	$(EXECUTOR) ../transpifferizer food-policy.xml food-label-milk-chocolate-out.ber food-label-milk-chocolate-out.xml
-	$(EXECUTOR) ../transpifferizer food-policy.xml food-label-milk-chocolate-out.xml food-label-milk-chocolate-out2.ber
-	diff food-label-milk-chocolate-out2.ber food-label-milk-chocolate-out.ber
-	$(EXECUTOR) ../transpifferizer food-policy.xml food-clearance-lactose-intolerant.xml food-clearance-lactose-intolerant-out.ber
-	$(EXECUTOR) ../transpifferizer food-policy.xml food-clearance-lactose-intolerant-out.ber food-clearance-lactose-intolerant-out.xml
-	$(EXECUTOR) ../transpifferizer food-policy.xml food-clearance-lactose-intolerant-out.xml food-clearance-lactose-intolerant-out2.ber
-	diff food-clearance-lactose-intolerant-out.ber food-clearance-lactose-intolerant-out2.ber
+	$(MAKE) EXECUTOR=$(EXECUTOR) $(OUTPUTS)
+	rm $(OUTPUTS)
+
+%-out2.ber: %.xml
+	$(EXECUTOR) ../transpifferizer food-policy.xml $< $*-out.ber
+	$(EXECUTOR) ../transpifferizer food-policy.xml $*-out.ber $*-out.xml
+	$(EXECUTOR) ../transpifferizer food-policy.xml $*-out.xml $@
+	diff $@ $*-out.ber
+	rm $*-out.ber $*-out.xml

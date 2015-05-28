@@ -146,6 +146,7 @@ namespace {
         ++asn_tag->field.choice.securityAttributes.list.count;
         ++i;
       }
+      asn_tag->field.present = FreeFormField_PR_securityAttributes;
     } else {
       std::size_t sz = 4;
       asn_tag->field.choice.bitSetAttributes.buf = (unsigned char *)calloc(sizeof(unsigned char), sz);
@@ -160,8 +161,9 @@ namespace {
         asn_tag->field.choice.bitSetAttributes.size = ((*i)->lacv() / 8) + 1;
         ++i;
       }
+      asn_tag->field.present = FreeFormField_PR_bitSetAttributes;
     }
-    ANY_fromType(&asn_cat->value, &asn_DEF_EnumeratedTag, &*asn_tag);
+    ANY_fromType(&asn_cat->value, &asn_DEF_InformativeTag, &*asn_tag);
     asn_cats->list.array[asn_cats->list.count] = asn_cat.release();
     asn_cats->list.count++;
   }

@@ -52,7 +52,6 @@ void Category::required(std::unique_ptr<CategoryGroup> && cg) {
 }
 
 bool Category::valid(Label const & label) const {
-  if (!m_tag.valid(label.classification())) return false;
   if (m_excludedClass.find(label.classification().lacv()) != m_excludedClass.end()) return false;
   for (auto & excl : m_excluded) {
     if (excl->matches(label)) return false;

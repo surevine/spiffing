@@ -1,10 +1,11 @@
 <tests>
-  <test spif='food-policy.xml' label='food-label-milk-chocolate.xml' valid='true' clearance='food-clearance-lactose-intolerant.xml' label-marking='[ Luxury Sweet/Chocolate Brown Contains Lactose Not Vegan Animal Rights ]' clearance-marking='[ {Commodity|Luxury} Sweet Brown Contains Peanut+Nut+Gluten Not Vegan ]' acdf-result='0'/>
+  <test spif='food-policy.xml' label='food-label-milk-chocolate.xml' valid='true' clearance='food-clearance-lactose-intolerant.xml' label-marking='[ Luxury Sweet/Yummy Chocolate Brown Contains Lactose Not Vegan Animal Rights ]' clearance-marking='[ {Commodity|Luxury} Sweet Contains Peanut+Nut+Gluten Not Vegan ]' acdf-result='0'/>
   <test spif='food-policy.xml' label='food-label-milk-chocolate.xml' valid='true' clearance='food-clearance-all-okay.xml' acdf-result='1'/>
   <test spif='food-policy.xml' label='food-label-cheap-milk-chocolate.xml' valid='false'/>
   <test spif='food-policy.xml' label='food-label-meaty-milk-chocolate.xml' valid='false'/>
   <test spif='food-policy.xml' label='stupid-label.ber' exception='Policy mismatch: 1.1'/>
   <test spif='food-policy.xml' label='this-file-does-not-exist.ber' exception='No data to parse'/>
   <test spif='food-policy.xml' label='food-label-bacon.xml' valid='true'/>
+  <test spif='food-policy.xml' label='food-label-water.xml' label-marking='[ FREE British Flag ]' valid='true'/>
   <test spif='food-policy-borked.xml' label='food-label-bacon.xml' valid='true' exception='Duplicate excluded classification in category'/>
 </tests>

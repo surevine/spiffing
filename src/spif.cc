@@ -234,7 +234,6 @@ namespace {
 				}
 			}
 			std::shared_ptr<Tag> t{new Tag(*ts, tagType, t7enc, tagName_a->value())};
-			parseExcludedClass(tag, t, classNames); // TODO Not sure this is legal, really.
 			ts->addTag(t);
 			t->marking(parseMarking(tag));
 			for (auto cat = tag->first_node("tagCategory"); cat; cat = cat->next_sibling("tagCategory")) {
@@ -259,10 +258,16 @@ namespace {
 
 void Spif::parse(std::string const & s, Format fmt) {
 	using namespace rapidxml;
+	if (s.empty()) {
+		throw std::runtime_error("SPIF is empty");
+	}
 	std::string scratch = s;
 	xml_document<> doc;
 	doc.parse<0>(const_cast<char *>(scratch.c_str()));
 	auto node = doc.first_node();
+	if (!node) {
+		throw std::runtime_error("SPIF XML parse failure, no root node");
+	}
 	if (std::string("SPIF") != node->name()) {
 		throw std::runtime_error("Not a spif");
 	}

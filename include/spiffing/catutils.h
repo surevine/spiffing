@@ -75,6 +75,9 @@ namespace Spiffing {
 
     template<typename Object>
     void parse_enum_cat(TagType enum_type, Object & object, ANY * any) {
+      if (any->size == 0) {
+        throw std::runtime_error("EnumeratedTag missing or corrupt");
+      }
       Asn<EnumeratedTag_t> enumeratedTag(&asn_DEF_EnumeratedTag);
       auto r = ANY_to_type(any, &asn_DEF_EnumeratedTag, enumeratedTag.addr());
       if (r != RC_OK) {
@@ -91,6 +94,9 @@ namespace Spiffing {
 
     template<typename Object, typename Tag>
     void parse_cat(TagType type, asn_TYPE_descriptor_t * asn_def, Object & object, ANY * any) {
+      if (any->size == 0) {
+        throw std::runtime_error("attributeFlagTag missing or corrupt");
+      }
       Asn<Tag> tag(asn_def);
       auto r = ANY_to_type(any, asn_def, tag.addr());
       if (r != RC_OK) {
@@ -111,6 +117,9 @@ namespace Spiffing {
 
     template<typename Object>
     void parse_info_cat(Object & object, ANY * any) {
+      if (any->size == 0) {
+        throw std::runtime_error("InformativeTag missing or corrupt");
+      }
       Asn<InformativeTag> tag(&asn_DEF_InformativeTag);
       auto r = ANY_to_type(any, &asn_DEF_InformativeTag, tag.addr());
       if (r != RC_OK) {

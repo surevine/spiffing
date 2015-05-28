@@ -3,5 +3,6 @@
   <classification lacv='52'>Luxury</classification>
   <tag type='permissive' id='1.2.826.0.1.6726289.0.0.1' lacv='5'>Meaty</tag>
   <tag type='enumeratedRestrictive' id='1.2.826.0.1.6726289.0.0.3' lacv='9954'>Not Vegan</tag>
+  <tag type='informative' id='1.2.826.0.1.6726289.0.0.4' lacv='0'>Plastic</tag>
   <!-- <tag type='permissive' id='1.2.826.0.1.6726289.0.0.3' lacv='0'>Animal Rights</tag> -->
 </label>
