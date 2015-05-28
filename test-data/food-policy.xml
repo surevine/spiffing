@@ -31,6 +31,9 @@
 					<requiredCategory operation='all'>
 						<categoryGroup tagSetRef='Ethics' tagType='enumerated' enumType='restrictive' lacv='9954'/>
 					</requiredCategory>
+					<markingData>
+						<code>pageTopBottom</code>
+					</markingData>
 				</tagCategory>
 				<tagCategory name="Chocolate" lacv="6">
 					<excludedClass>Commodity</excludedClass>

@@ -332,7 +332,7 @@ namespace {
 			if (tagName != currentTagName) {
 				// Entering new tag.
 				tagName = currentTagName;
-				marking += sep;
+				if (!marking.empty()) marking += sep;
 				if (i->tag().hasMarking()) {
 					tagsep = i->tag().marking().sep();
 					if (tagsep.empty()) tagsep = "/"; // Default;
@@ -355,14 +355,13 @@ std::string Spif::displayMarking(Label const & label, MarkingCode loc) const {
 	}
 	bool suppressClassName = false;
 	for (auto & i : label.categories()) {
-		if (i->tag().hasMarking()) {
-			if (i->tag().marking().suppressClassName(loc)) {
+		if (i->hasMarking()) {
+			if (i->marking().suppressClassName(loc)) {
 				suppressClassName = true;
 				break;
 			}
 		}
 	}
-	if (m_marking != nullptr) marking = m_marking->prefix();
 	std::string sep;
 	if (m_marking != nullptr) sep = m_marking->sep();
 	if (sep.empty()) sep = " "; // Default.
@@ -376,6 +375,7 @@ std::string Spif::displayMarking(Label const & label, MarkingCode loc) const {
 		}
 	}
 	categoryMarkings(loc, marking, label.categories(), sep);
+	if (m_marking != nullptr) marking = m_marking->prefix() + marking;
 	if (m_marking != nullptr) marking += m_marking->suffix();
 	return marking;
 }
