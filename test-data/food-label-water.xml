@@ -1,0 +1,5 @@
+<label xmlns='http://surevine.com/xmlns/spiffy'>
+  <policy id='1.2.826.0.1.6726289.0.0'>Food labelling policy</policy>
+  <classification lacv='50'>Free</classification>
+  <tag type='permissive' id='1.2.826.0.1.6726289.0.0.3' lacv='1'>British Flag</tag>
+</label>
