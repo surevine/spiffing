@@ -40,8 +40,7 @@ namespace Spiffing {
     CategoryData(std::string const & tagSetRef, TagType tagType);
 
     void compile(Spif const &);
-    bool req_matches(Label const &) const;
-    bool excl_matches(Label const &) const;
+    bool matches(Label const &) const;
   private:
     std::set<CategoryRef> m_cats;
     std::string m_tagSetRef;

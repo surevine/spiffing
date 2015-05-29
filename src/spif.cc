@@ -80,6 +80,48 @@ namespace {
 				}
 			}
 		}
+		for (auto data = holder->first_node("markingData"); data; data = data->next_sibling("markingData")) {
+			auto phrase_a = data->first_attribute("phrase");
+			if (!ptr) ptr = std::unique_ptr<Marking>{new Marking()};
+			int loc(0);
+			std::string phrase;
+			if (phrase_a) {
+				phrase = std::string(phrase_a->value(), phrase_a->value_size());
+			}
+			bool locset = false;
+			bool unknown = false;
+			for (auto code = data->first_node("code"); code; code = code->next_sibling("code")) {
+				std::string codename(code->value(), code->value_size());
+				if (codename == "noMarkingDisplay") {
+					loc |= MarkingCode::noMarkingDisplay;
+					locset = true;
+				} else if (codename == "noNameDisplay") {
+					loc |= MarkingCode::noNameDisplay;
+				} else if (codename == "suppressClassName") {
+					loc |= MarkingCode::suppressClassName;
+				} else if (codename == "pageBottom") {
+					loc |= MarkingCode::pageBottom;
+					locset = true;
+				} else if (codename == "pageTop") {
+					loc |= MarkingCode::pageTop;
+					locset = true;
+				} else if (codename == "pageTopBottom") {
+					loc |= MarkingCode::pageTop | MarkingCode::pageBottom;
+					locset = true;
+				} else {
+					unknown = true;
+				}
+			}
+			if (unknown) continue;
+			if (!locset) {
+				loc |= MarkingCode::pageBottom;
+			}
+			if (phrase_a) {
+				ptr->addPhrase(loc, std::string(phrase_a->value(), phrase_a->value_size()));
+			} else {
+				ptr->addPhrase(loc, "");
+			}
+		}
 		return ptr;
 	}
 
@@ -94,7 +136,7 @@ namespace {
 			tagType = TagType::restrictive;
 		} else if (tagTypeName == "enumerated") {
 			auto enumType_a = node->first_attribute("enumType");
-			if (!enumType_a) throw std::runtime_error("securityCategoryTag has no enumType");
+			if (!enumType_a) throw std::runtime_error("element has no enumType");
 			std::string enumTypeName = enumType_a->value();
 			if (enumTypeName == "permissive") {
 				tagType = TagType::enumeratedPermissive;
@@ -102,8 +144,7 @@ namespace {
 				tagType = TagType::enumeratedRestrictive;
 			}
 		} else {
-			// TODO :: tagType7; ignored for now.
-			return TagType::informationalBitSet;
+			tagType = TagType::informative;
 		}
 		return tagType;
 	}
@@ -168,7 +209,7 @@ namespace {
 		for (auto reqCat = classification->first_node("requiredCategory"); reqCat; reqCat = reqCat->next_sibling("requiredCategory")) {
 			cls->addRequiredCategory(parseCategoryGroup(reqCat));
 		}
-		cls->addMarking(parseMarking(classification));
+		cls->marking(parseMarking(classification));
 		return cls;
 	}
 
@@ -181,9 +222,18 @@ namespace {
 			auto tagName_a = tag->first_attribute("name");
 			if (!tagName_a) throw std::runtime_error("securityCategoryTag has no name");
 			TagType tagType = parseTagType(tag);
-			if (tagType == TagType::informationalBitSet) continue; // TODO
-			std::shared_ptr<Tag> t{new Tag(*ts, tagType, tagName_a->value())};
-			parseExcludedClass(tag, t, classNames); // TODO Not sure this is legal, really.
+			InformativeEncoding t7enc = InformativeEncoding::notApplicable;
+			if (tagType == TagType::informative) {
+				auto t7type_a = tag->first_attribute("tag7Encoding");
+				if (!t7type_a) throw std::runtime_error("element has no tag7Encoding");
+				std::string t7type = t7type_a->value();
+				if (t7type == "bitSetAttributes") {
+					t7enc = InformativeEncoding::bitSet;
+				} else {
+					t7enc = InformativeEncoding::enumerated;
+				}
+			}
+			std::shared_ptr<Tag> t{new Tag(*ts, tagType, t7enc, tagName_a->value())};
 			ts->addTag(t);
 			t->marking(parseMarking(tag));
 			for (auto cat = tag->first_node("tagCategory"); cat; cat = cat->next_sibling("tagCategory")) {
@@ -199,6 +249,7 @@ namespace {
 					std::unique_ptr<CategoryData> exc = parseOptionalCategoryData(excnode);
 					c->excluded(std::move(exc));
 				}
+				c->marking(parseMarking(cat));
 			}
 		}
 		return ts;
@@ -207,10 +258,16 @@ namespace {
 
 void Spif::parse(std::string const & s, Format fmt) {
 	using namespace rapidxml;
+	if (s.empty()) {
+		throw std::runtime_error("SPIF is empty");
+	}
 	std::string scratch = s;
 	xml_document<> doc;
 	doc.parse<0>(const_cast<char *>(scratch.c_str()));
 	auto node = doc.first_node();
+	if (!node) {
+		throw std::runtime_error("SPIF XML parse failure, no root node");
+	}
 	if (std::string("SPIF") != node->name()) {
 		throw std::runtime_error("Not a spif");
 	}
@@ -258,41 +315,67 @@ void Spif::parse(std::string const & s, Format fmt) {
 }
 
 namespace {
-	void categoryMarkings(std::string & marking, std::set<CategoryRef> const & cats, std::string const & sep) {
+	void categoryMarkings(MarkingCode loc, std::string & marking, std::set<CategoryRef> const & cats, std::string const & sep) {
 		std::string tagName;
 		std::string tagsep;
 		for (auto & i : cats) {
+			std::string phrase;
+			if (i->hasMarking()) {
+				phrase = i->marking().phrase(loc, i->name());
+			} else if (i->tag().hasMarking()) {
+				phrase = i->tag().marking().phrase(loc, i->name());
+			} else {
+				phrase = i->name();
+			}
+			if (phrase.empty()) continue;
 			std::string currentTagName = i->tag().name();
 			if (tagName != currentTagName) {
 				// Entering new tag.
 				tagName = currentTagName;
-				marking += sep;
+				if (!marking.empty()) marking += sep;
 				if (i->tag().hasMarking()) {
 					tagsep = i->tag().marking().sep();
-					if (tagsep.empty()) tagsep = " "; // Default;
+					if (tagsep.empty()) tagsep = "/"; // Default;
 					marking += i->tag().marking().prefix();
 				} else {
-					tagsep = " ";
+					tagsep = "/";
 				}
 			} else {
 				marking += tagsep;
 			}
-			marking += i->name();
+			marking += phrase;
 		}
 	}
 }
 
-std::string Spif::displayMarking(Label const & label) const {
+std::string Spif::displayMarking(Label const & label, MarkingCode loc) const {
 	std::string marking;
 	if (label.policy_id() != m_oid) {
 		throw std::runtime_error("Label is incorrect policy");
 	}
-	if (m_marking != nullptr) marking = m_marking->prefix();
+	bool suppressClassName = false;
+	for (auto & i : label.categories()) {
+		if (i->hasMarking()) {
+			if (i->marking().suppressClassName(loc)) {
+				suppressClassName = true;
+				break;
+			}
+		}
+	}
 	std::string sep;
 	if (m_marking != nullptr) sep = m_marking->sep();
 	if (sep.empty()) sep = " "; // Default.
-	marking += label.classification().name();
-	categoryMarkings(marking, label.categories(), sep);
+	if (!suppressClassName) {
+		if (label.classification().hasMarking()) {
+			marking += label.classification().marking().phrase(loc, label.classification().name());
+		} else if (m_marking != nullptr) {
+			marking += m_marking->phrase(loc, label.classification().name());
+		} else {
+			marking += label.classification().name();
+		}
+	}
+	categoryMarkings(loc, marking, label.categories(), sep);
+	if (m_marking != nullptr) marking = m_marking->prefix() + marking;
 	if (m_marking != nullptr) marking += m_marking->suffix();
 	return marking;
 }
@@ -329,7 +412,7 @@ std::string Spif::displayMarking(Spiffing::Clearance const & clearance) const {
 		}
 	}
 	marking += "}";
-	categoryMarkings(marking, clearance.categories(), sep);
+	categoryMarkings(MarkingCode::pageBottom, marking, clearance.categories(), sep);
 	if (m_marking != nullptr) marking += m_marking->suffix();
 	return marking;
 }

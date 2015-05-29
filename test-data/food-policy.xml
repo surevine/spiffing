@@ -2,9 +2,9 @@
 	<securityPolicyId name="Food" id="1.2.826.0.1.6726289.0.0"/>
 	<securityClassifications>
 		<securityClassification name="Freely Available" color="#DFDFDF" lacv="50" hierarchy="0" obsolete="false">
-			<markingCode phrase='FREE'>
+			<markingData phrase='FREE'>
 				<code>pageTopBottom</code>
-			</markingCode>
+			</markingData>
 		</securityClassification>
 		<securityClassification name="Commodity" color="white" lacv="51" hierarchy="1" obsolete="false"/>
 		<securityClassification name="Luxury" color="red" lacv="52" hierarchy="2" obsolete="false">
@@ -31,18 +31,24 @@
 					<requiredCategory operation='all'>
 						<categoryGroup tagSetRef='Ethics' tagType='enumerated' enumType='restrictive' lacv='9954'/>
 					</requiredCategory>
+					<markingData>
+						<code>pageTopBottom</code>
+					</markingData>
 				</tagCategory>
 				<tagCategory name="Chocolate" lacv="6">
 					<excludedClass>Commodity</excludedClass>
 					<excludedClass>Ambrosia</excludedClass>
 					<excludedCategory tagSetRef='Taste Sensations' tagType='permissive' lacv='5'/>
+					<markingData phrase="Yummy Chocolate">
+						<code>suppressClassName</code>
+					</markingData>
 				</tagCategory>
 			</securityCategoryTag>
-			<securityCategoryTag name="Colour" tagType="enumerated" enumType="permissive">
+			<securityCategoryTag name="Colour" tagType="tagType7" tag7Encoding="bitSetAttributes">
 				<tagCategory name="Red" lacv='0'/>
 				<tagCategory name='Green' lacv='1'/>
 				<tagCategory name='Blue' lacv='2'/>
-				<tagCategory name='Brown' lacv='3'/>
+				<tagCategory name='Brown' lacv='78'/>
 			</securityCategoryTag>
 		</securityCategoryTagSet>
 		<securityCategoryTagSet name="Allergens" id="1.2.826.0.1.6726289.0.0.2">
@@ -68,6 +74,11 @@
 				<tagCategory name="Fluffy Animals" lacv='2'/>
 			</securityCategoryTag>
 		</securityCategoryTagSet>
+		<securityCategoryTagSet name="Packaging" id="1.2.826.0.1.6726289.0.0.4">
+			<securityCategoryTag name="Packaging Materials" tagType="tagType7" tag7Encoding="securityAttributes">
+				<tagCategory name="Plastic" lacv='0'/>
+			</securityCategoryTag>
+		</securityCategiryTagSet>
 	</securityCategoryTagSets>
 	<markingQualifier code='pageBottom'>
 		<qualifier markingQualifier="[ " qualifierCode="prefix"/>

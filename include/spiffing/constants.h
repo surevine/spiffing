@@ -39,15 +39,29 @@ namespace Spiffing {
       enumeratedPermissive,
       enumeratedRestrictive,
       permissive,
-      informationalAttributes,
-			informationalBitSet
+      informative
   };
+	enum class InformativeEncoding {
+		notApplicable,
+		enumerated,
+		bitSet
+	};
 	typedef unsigned long lacv_t;
 	enum class OperationType {
 		onlyOne,
 		oneOrMore,
 		all
 	};
+	typedef enum MarkingCode {
+		pageTop = 1 << 0,
+		pageBottom = 1 << 1,
+		pageTopBottom = 1 << 2,
+		documentEnd = 1 << 3,
+		noNameDisplay = 1 << 4,
+		noMarkingDisplay = 1 << 5,
+		documentStart = 1 << 6,
+		suppressClassName = 1 << 7
+	} MarkingCode;
 	class Classification;
 	class Label;
 	class Clearance;

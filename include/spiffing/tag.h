@@ -36,7 +36,7 @@ SOFTWARE.
 namespace Spiffing {
     class Tag {
     public:
-        Tag(TagSet & tagSet, TagType tagType, std::string const & name);
+        Tag(TagSet & tagSet, TagType tagType, InformativeEncoding t7enc, std::string const & name);
         std::string const & name() const {
           return m_name;
         }
@@ -45,6 +45,9 @@ namespace Spiffing {
         TagType tagType() const {
           return m_tagType;
         }
+        InformativeEncoding informativeEncoding() const {
+          return m_t7enc;
+        }
 
         bool hasMarking() const {
           return m_marking != nullptr;
@@ -52,24 +55,20 @@ namespace Spiffing {
         Marking const & marking() const {
           return *m_marking;
         }
-        Marking const & marking(std::unique_ptr<Marking> m) {
-          m_marking.swap(m);
-          return *m_marking;
+        void marking(std::unique_ptr<Marking> && m) {
+          m_marking = std::move(m);
         }
         TagSet const & tagSet() const {
           return m_tagSet;
         }
 
-        bool valid(Classification const &) const;
-        void excluded(Classification const &);
-
     private:
         std::string m_name;
         std::map<Lacv,std::shared_ptr<Category>> m_categories;
         TagType m_tagType;
+        InformativeEncoding m_t7enc;
         TagSet & m_tagSet;
         std::unique_ptr<Marking> m_marking;
-        std::set<lacv_t> m_excludedClass;
     };
 }
 

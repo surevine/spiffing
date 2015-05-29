@@ -106,6 +106,8 @@ void Label::parse_ber(std::string const & label) {
 				Internal::parse_cat<Label,RestrictiveTag_t>(TagType::restrictive, &asn_DEF_RestrictiveTag, *this, &asn_label->security_categories->list.array[i]->value);
 			} else if (tagType == "2.16.840.1.101.2.1.8.3.2") { // Permissive.
 				Internal::parse_cat<Label,PermissiveTag_t>(TagType::permissive, &asn_DEF_PermissiveTag, *this, &asn_label->security_categories->list.array[i]->value);
+			} else if (tagType == "2.16.840.1.101.2.1.8.3.3") { // Informative
+				Internal::parse_info_cat<Label>(*this, &asn_label->security_categories->list.array[i]->value);
 			}
 		}
 	}
@@ -156,6 +158,8 @@ void Label::parse_xml(std::string const & label) {
 					type = TagType::enumeratedPermissive;
 				} else if (tag_type == "enumeratedRestrictive") {
 					type = TagType::enumeratedRestrictive;
+				} else if (tag_type == "informative") {
+					type = TagType::informative;
 				} else throw std::runtime_error("unsupported tag type " + tag_type);
 				auto idattr = tag->first_attribute("id");
 				if (!idattr) throw std::runtime_error("tag without id");
@@ -210,6 +214,9 @@ void Label::write_xml(std::string & output) {
 			break;
 		case TagType::enumeratedRestrictive:
 			p = "enumeratedRestrictive";
+			break;
+		case TagType::informative:
+			p = "informative";
 			break;
 		default:
 			throw std::runtime_error("Tagtype unimplemented!");

@@ -27,6 +27,7 @@ SOFTWARE.
 #define SPIFFING_CLASS_H
 
 #include <spiffing/constants.h>
+#include <spiffing/marking.h>
 #include <string>
 #include <set>
 #include <memory>
@@ -46,9 +47,18 @@ namespace Spiffing {
 			return m_name;
 		}
 		void addRequiredCategory(std::unique_ptr<CategoryGroup> reqCats);
-		void addMarking(std::unique_ptr<Marking> marking);
 		void compile(Spif const &);
 		bool valid(Label const &) const;
+
+		bool hasMarking() const {
+			return m_marking != nullptr;
+		}
+		Marking const & marking() const {
+			return *m_marking;
+		}
+		Marking const & marking(std::unique_ptr<Marking> && m) {
+			m_marking = std::move(m);
+		}
 	private:
 		lacv_t m_lacv;
 		std::string const m_name;

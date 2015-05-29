@@ -27,6 +27,8 @@ SOFTWARE.
 #define SPIFFING_MARKING_H
 
 #include <string>
+#include <list>
+#include <spiffing/constants.h>
 
 namespace Spiffing {
   class Marking {
@@ -47,12 +49,9 @@ namespace Spiffing {
       return m_suffix = s;
     }
 
-    std::string const & phrase() const {
-      return m_phrase;
-    }
-    std::string const & phrase(std::string const & p) {
-      return m_phrase = p;
-    }
+    std::string const & phrase(MarkingCode loc, std::string const & p) const;
+    void addPhrase(int loc, std::string const & p);
+    bool suppressClassName(MarkingCode loc) const;
 
     std::string const & sep() const {
       return m_sep;
@@ -64,8 +63,9 @@ namespace Spiffing {
   private:
     std::string m_prefix;
     std::string m_suffix;
-    std::string m_phrase;
     std::string m_sep;
+    bool m_suppressClassName;
+    std::list<std::pair<int,std::string>> m_phrase;
   };
 }
 

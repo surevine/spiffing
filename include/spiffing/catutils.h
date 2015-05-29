@@ -33,6 +33,7 @@ SOFTWARE.
 #include <ANY.h>
 #include <OBJECT_IDENTIFIER.h>
 #include <EnumeratedTag.h>
+#include <InformativeTag.h>
 #include <SecurityCategories.h>
 #include <stdexcept>
 #include <set>
@@ -74,6 +75,9 @@ namespace Spiffing {
 
     template<typename Object>
     void parse_enum_cat(TagType enum_type, Object & object, ANY * any) {
+      if (any->size == 0) {
+        throw std::runtime_error("EnumeratedTag missing or corrupt");
+      }
       Asn<EnumeratedTag_t> enumeratedTag(&asn_DEF_EnumeratedTag);
       auto r = ANY_to_type(any, &asn_DEF_EnumeratedTag, enumeratedTag.addr());
       if (r != RC_OK) {
@@ -90,6 +94,9 @@ namespace Spiffing {
 
     template<typename Object, typename Tag>
     void parse_cat(TagType type, asn_TYPE_descriptor_t * asn_def, Object & object, ANY * any) {
+      if (any->size == 0) {
+        throw std::runtime_error("attributeFlagTag missing or corrupt");
+      }
       Asn<Tag> tag(asn_def);
       auto r = ANY_to_type(any, asn_def, tag.addr());
       if (r != RC_OK) {
@@ -107,6 +114,39 @@ namespace Spiffing {
         }
       }
     }
+
+    template<typename Object>
+    void parse_info_cat(Object & object, ANY * any) {
+      if (any->size == 0) {
+        throw std::runtime_error("InformativeTag missing or corrupt");
+      }
+      Asn<InformativeTag> tag(&asn_DEF_InformativeTag);
+      auto r = ANY_to_type(any, &asn_DEF_InformativeTag, tag.addr());
+      if (r != RC_OK) {
+        throw std::runtime_error("Failed to decode informative tag");
+      }
+      std::string tagSetName = oid2str(&tag->tagName);
+      if (tag->field.present == FreeFormField_PR_securityAttributes) {
+        for (size_t ii{0}; ii != tag->field.choice.securityAttributes.list.count; ++ii) {
+          auto n = tag->field.choice.securityAttributes.list.array[ii];
+          Lacv catLacv{std::string((char *)n->buf, n->size)};
+          auto cat = object.policy().tagSetLookup(tagSetName)->categoryLookup(TagType::informative, catLacv);
+          object.addCategory(cat);
+        }
+      } else {
+        for (size_t ii{0}; ii != tag->field.choice.bitSetAttributes.size; ++ii) {
+          if (!tag->field.choice.bitSetAttributes.buf[ii]) continue;
+          for (int ij{0}; ij != 8; ++ij) {
+            if (tag->field.choice.bitSetAttributes.buf[ii] & (1 << (7 - ij))) {
+              Lacv catLacv{(ii*8 + ij)};
+              auto cat = object.policy().tagSetLookup(tagSetName)->categoryLookup(TagType::informative, catLacv);
+              object.addCategory(cat);
+            }
+          }
+        }
+      }
+    }
+
   }
 
 }
