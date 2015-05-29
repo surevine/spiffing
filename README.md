@@ -7,6 +7,8 @@ The beginning of a rippingly good SPIF/Label/Clearance handling library.
 
 [![Coverage Status](https://img.shields.io/coveralls/surevine/spiffing.svg)](https://coveralls.io/r/surevine/spiffing)
 
+[![Project Stats](https://www.openhub.net/p/spiffing-sio/widgets/project_thin_badge.gif)](https://www.openhub.net/p/spiffing-sio)
+
 It's absolutely Top Hole!
 
 Currently, this is experimental C++11 code, which will generate Display Markings for Labels (and Clearances), and perform an Access Control Decision. It handles ACP-145A categories,
@@ -16,11 +18,9 @@ also support for an XML format (primarily for testing).
 ## TODO
 
 On the list:
-* Validation according to SPIF
 * Moar test (though the spifflicator has high code coverage as-is, and is valgrind checked)
 * Equivalent Policy handling
 * Likely some parts of Display Marking handling missing.
-* Informative tag support.
 
 ## Pre-Build
 
