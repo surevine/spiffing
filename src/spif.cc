@@ -271,6 +271,14 @@ void Spif::parse(std::string const & s, Format fmt) {
 	if (std::string("SPIF") != node->name()) {
 		throw std::runtime_error("Not a spif");
 	}
+	auto rbacId = node->first_attribute("rbacId");
+	if (rbacId && rbacId->value()) {
+		m_rbacId = rbacId->value();
+	}
+	auto privilegeId = node->first_attribute("privilegeId");
+	if (privilegeId && privilegeId->value()) {
+		m_privilegeId = privilegeId->value();
+	}
 	auto securityPolicyId = node->first_node("securityPolicyId");
 	if (securityPolicyId) {
 		auto name = securityPolicyId->first_attribute("name");
