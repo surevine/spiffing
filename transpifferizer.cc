@@ -26,16 +26,17 @@ SOFTWARE.
 #include <spiffing/spif.h>
 #include <spiffing/label.h>
 #include <spiffing/clearance.h>
+#include <spiffing/spiffing.h>
 #include <fstream>
 #include <iostream>
 
 using namespace Spiffing;
 
-template<typename T> void transpifferize(Spif & spif, std::string const & ifn, const char * of) {
+template<typename T> void transpifferize(std::string const & ifn, const char * of) {
   std::ifstream label_file(ifn);
   std::string label_str{std::istreambuf_iterator<char>(label_file), std::istreambuf_iterator<char>()};
-  T label(spif, label_str, Format::ANY);
-  std::cout << "Marking is '" << spif.displayMarking(label) << "'" << std::endl;
+  T label(label_str, Format::ANY);
+  std::cout << "Marking is '" << label.policy().displayMarking(label) << "'" << std::endl;
   if (!of) return;
   std::string filename{of};
   std::ofstream output_file(filename);
@@ -70,16 +71,17 @@ int main(int argc, char *argv[]) {
       return 0;
     }
     std::ifstream spif_file(argv[1]);
-    Spif spif(spif_file, Format::XML);
-    std::cout << "Loaded SPIF " << spif.policy_id() << std::endl;
+    Site site;
+    auto spif = site.load(spif_file);
+    std::cout << "Loaded SPIF " << spif->policy_id() << std::endl;
     if (argc <= 2) return 0;
     try {
-      transpifferize<Label>(spif, argv[2], argv[3]);
+      transpifferize<Label>(argv[2], argv[3]);
       return 0;
     } catch (std::runtime_error &e) {
       std::cerr << "Obviously not a label: " << e.what() << std::endl;
     }
-    transpifferize<Clearance>(spif, argv[2], argv[3]);
+    transpifferize<Clearance>(argv[2], argv[3]);
   } catch(std::exception & e) {
     std::cerr << "Dude, exception: " << e.what() << std::endl;
     return 1;

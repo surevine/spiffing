@@ -37,9 +37,10 @@ SOFTWARE.
 #include <rapidxml.hpp>
 #include <rapidxml_print.hpp>
 #include <sstream>
+#include <spiffing/spiffing.h>
 
-Spiffing::Clearance::Clearance(Spiffing::Spif const & policy, std::string const & clearance, Spiffing::Format fmt)
-: m_policy(policy) {
+Spiffing::Clearance::Clearance(std::string const & clearance, Spiffing::Format fmt)
+: m_policy() {
 	parse(clearance, fmt);
 }
 
@@ -96,6 +97,7 @@ void Spiffing::Clearance::parse_ber(std::string const & clearance) {
 		}
 	}
 	m_policy_id = Spiffing::Internal::oid2str(&asn_clearance->policyId);
+	m_policy = Site::site().spif(m_policy_id);
 	if (asn_clearance->securityCategories) {
 		for (size_t i{0}; i != asn_clearance->securityCategories->list.count; ++i) {
 			std::string tagType = Spiffing::Internal::oid2str(&asn_clearance->securityCategories->list.array[i]->type);
@@ -145,7 +147,8 @@ void Spiffing::Clearance::parse_xml(std::string const & clearance) {
 		if (securityPolicy) {
 			auto idattr = securityPolicy->first_attribute("id");
 			if (idattr) m_policy_id = idattr->value();
-			if (m_policy.policy_id() != m_policy_id) {
+			m_policy = Site::site().spif(m_policy_id);
+			if (m_policy->policy_id() != m_policy_id) {
 				throw std::runtime_error("Policy mismatch: " + m_policy_id);
 			}
 		} else throw std::runtime_error("No policy in clearance");
@@ -178,7 +181,7 @@ void Spiffing::Clearance::parse_xml(std::string const & clearance) {
 				auto lacvattr = tag->first_attribute("lacv");
 				if (!lacvattr) throw std::runtime_error("tag without lacv");
 				Spiffing::Lacv lacv = Spiffing::Lacv::parse(std::string(lacvattr->value(), lacvattr->value_size()));
-				auto cat = m_policy.tagSetLookup(id)->categoryLookup(type, lacv);
+				auto cat = m_policy->tagSetLookup(id)->categoryLookup(type, lacv);
 				addCategory(cat);
 		}
 }

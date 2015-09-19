@@ -5,7 +5,7 @@ OUTPUTS=$(INPUTS:%.xml=%-out2.ber)
 
 all:
 	$(EXECUTOR) ../test tests.xml
-	$(MAKE) EXECUTOR=$(EXECUTOR) $(OUTPUTS)
+	$(MAKE) EXECUTOR="$(EXECUTOR)" $(OUTPUTS)
 	rm $(OUTPUTS)
 
 %-out2.ber: %.xml

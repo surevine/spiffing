@@ -34,7 +34,7 @@ SOFTWARE.
 namespace Spiffing {
 	class Clearance {
 	public:
-		Clearance(Spif const & policy, std::string const & label, Format fmt);
+		Clearance(std::string const & label, Format fmt);
 		void parse(std::string const & label, Format fmt);
 		void write(Format fmt, std::string &);
 
@@ -51,7 +51,7 @@ namespace Spiffing {
 		bool hasCategory(CategoryRef const & cat) const;
 		bool hasCategory(std::set<CategoryRef> const & cats) const;
 		Spif const & policy() const {
-			return m_policy;
+			return *m_policy;
 		}
 		void addCategory(std::shared_ptr<Category> const & cat);
 	private:
@@ -61,7 +61,7 @@ namespace Spiffing {
 		void write_xml(std::string &);
 		void write_ber(std::string &);
 
-		Spif const & m_policy;
+		std::shared_ptr<Spif> m_policy;
 		std::string m_policy_id;
 		std::set<lacv_t> m_classList;
 		std::set<CategoryRef> m_cats;
