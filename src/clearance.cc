@@ -109,6 +109,8 @@ void Spiffing::Clearance::parse_ber(std::string const & clearance) {
 				Spiffing::Internal::parse_cat<Clearance, RestrictiveTag_t>(TagType::restrictive, &asn_DEF_RestrictiveTag, *this, &asn_clearance->securityCategories->list.array[i]->value);
 			} else if (tagType == "2.16.840.1.101.2.1.8.3.2") { // Permissive.
 				Spiffing::Internal::parse_cat<Clearance, PermissiveTag_t>(TagType::permissive, &asn_DEF_PermissiveTag, *this, &asn_clearance->securityCategories->list.array[i]->value);
+			} else if (tagType == "2.16.840.1.101.2.1.8.2") { // SSLPriv
+				Spiffing::Internal::parse_sslp_cat(*this, &asn_clearance->securityCategories->list.array[i]->value);
 			}
 		}
 	}
@@ -266,7 +268,11 @@ void Spiffing::Clearance::write_ber(std::string & output) {
 		asn_clearance->classList->size = (cls / 8) + 1;
 	}
 	// Category Encoding.
-	asn_clearance->securityCategories = Spiffing::Internal::catencode(m_cats);
+	if (m_policy->privilegeId() == "2:16:840:1:101:2:1:8:2") {
+		asn_clearance->securityCategories = Internal::sslp_catencode(m_cats);
+	} else {
+		asn_clearance->securityCategories = Internal::nato_catencode(m_cats);
+	}
 	// Actual encoding.
 	der_encode(&asn_DEF_Clearance, &*asn_clearance, Spiffing::Internal::write_to_string, &output);
 }

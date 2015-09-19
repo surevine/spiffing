@@ -1,0 +1,49 @@
+MISSI DEFINITIONS IMPLICIT TAGS ::= BEGIN
+
+IMPORTS SecurityAttribute FROM ACP145
+  TagSetName FROM SSL;
+
+MissiSecurityCategories ::= CHOICE {
+  lrbacInfo LrbacInfo,
+  prbacSecurityCategories StandardSecurityLabel
+}
+
+LrbacInfo ::= SEQUENCE {
+  securityPolicyIdentifier OBJECT IDENTIFIER,
+  lrbacSecurityCategories StandardSecurityLabel
+}
+
+StandardSecurityLabel ::= SET OF NamedTagSet
+
+NamedTagSet ::= SEQUENCE {
+  tagSetName TagSetName,
+  securityTags SEQUENCE OF SecurityTag
+}
+
+SecurityTag ::= CHOICE {
+  --Type 1 - for restrictive security attributes
+  restrictivebitMap [1] IMPLICIT SEQUENCE {
+    securityLevel SecurityAttribute OPTIONAL,
+    attributeFlags BIT STRING
+  },
+  --Type 2 - for permissive or restrictive integers
+  enumeratedAttributes [2] IMPLICIT SEQUENCE {
+    securityLevel SecurityAttribute OPTIONAL,
+    attributeFlags SET OF SecurityAttribute
+  },
+  -- Type 6 - for permissive security attributes
+  permissivebitMap [6] IMPLICIT SEQUENCE {
+    securityLevel SecurityAttribute OPTIONAL,
+    attributeFlags BIT STRING
+  },
+  -- Type 7 - for markings with no formal access control
+  freeFormField [7] EXPLICIT ANY
+}
+
+-- For MISSI, the freeFormField takes the form of the following:
+TagType7Data ::= CHOICE {
+  bitSetAttributes BIT STRING,
+  securityAttributes SET OF SecurityAttribute
+}
+
+END

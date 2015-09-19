@@ -110,6 +110,8 @@ void Label::parse_ber(std::string const & label) {
 				Internal::parse_cat<Label,PermissiveTag_t>(TagType::permissive, &asn_DEF_PermissiveTag, *this, &asn_label->security_categories->list.array[i]->value);
 			} else if (tagType == "2.16.840.1.101.2.1.8.3.3") { // Informative
 				Internal::parse_info_cat<Label>(*this, &asn_label->security_categories->list.array[i]->value);
+			} else if (tagType == "2.16.840.1.101.2.1.8.1") { // MISSI
+				Internal::parse_missi_cat(*this, &asn_label->security_categories->list.array[i]->value);
 			}
 		}
 	}
@@ -241,7 +243,11 @@ void Label::write_ber(std::string & output) {
 	asn_label->security_classification = (long *)malloc(sizeof(long));
 	*asn_label->security_classification = m_class->lacv();
 	// Category Encoding.
-	asn_label->security_categories = Internal::catencode(m_cats);
+	if (m_policy->privilegeId() == "2:16:840:1:101:2:1:8:1") {
+		asn_label->security_categories = Internal::missi_catencode(m_cats);
+	} else {
+		asn_label->security_categories = Internal::nato_catencode(m_cats);
+	}
 	// Actual encoding.
 	der_encode(&asn_DEF_ESSSecurityLabel, &*asn_label, Internal::write_to_string, &output);
 }

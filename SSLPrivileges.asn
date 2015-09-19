@@ -1,0 +1,25 @@
+SSL DEFINITIONS IMPLICIT TAGS ::= BEGIN
+
+IMPORTS SecurityAttribute FROM ACP145;
+
+SSLPrivileges ::= SET OF NamedTagSetPrivilege
+
+NamedTagSetPrivilege ::= SEQUENCE {
+  tagSetName TagSetName,
+  securityTagPrivileges SEQUENCE OF SecurityTagPrivilege
+}
+
+TagSetName ::= OBJECT IDENTIFIER
+
+SecurityTagPrivilege ::= CHOICE {
+  -- Type 1 - for restrictive security attributes
+  restrictivebitMap [1] IMPLICIT BIT STRING,
+
+  -- Type 2 - for permissive or restrictive integers
+  enumeratedAttributes [2] IMPLICIT SET OF SecurityAttribute,
+
+  -- Type 6 - for permissive security attributes
+  permissivebitMap [6] IMPLICIT BIT STRING
+}
+
+END

@@ -71,7 +71,9 @@ namespace Spiffing {
     OBJECT_IDENTIFIER_t * str2oid(std::string const & s);
     void str2oid(std::string const & s, OBJECT_IDENTIFIER_t *);
 
-    SecurityCategories * catencode(std::set<CategoryRef> const &);
+    SecurityCategories *nato_catencode(std::set<CategoryRef> const &);
+    SecurityCategories *missi_catencode(std::set<CategoryRef> const &);
+    SecurityCategories *sslp_catencode(std::set<CategoryRef> const &);
 
     template<typename Object>
     void parse_enum_cat(TagType enum_type, Object & object, ANY * any) {
@@ -147,6 +149,8 @@ namespace Spiffing {
       }
     }
 
+    void parse_missi_cat(Label & label, ANY * any);
+    void parse_sslp_cat(Clearance & clearance, ANY * any);
   }
 
 }
