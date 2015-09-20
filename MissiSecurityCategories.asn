@@ -37,7 +37,7 @@ SecurityTag ::= CHOICE {
     attributeFlags BIT STRING
   },
   -- Type 7 - for markings with no formal access control
-  freeFormField [7] EXPLICIT ANY
+  freeFormField [7] IMPLICIT OCTET STRING -- Really an ANY, but asn1c gets upset with IMPLICIT then.
 }
 
 -- For MISSI, the freeFormField takes the form of the following:

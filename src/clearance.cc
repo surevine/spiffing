@@ -101,15 +101,15 @@ void Spiffing::Clearance::parse_ber(std::string const & clearance) {
 	if (asn_clearance->securityCategories) {
 		for (size_t i{0}; i != asn_clearance->securityCategories->list.count; ++i) {
 			std::string tagType = Spiffing::Internal::oid2str(&asn_clearance->securityCategories->list.array[i]->type);
-			if (tagType == "2.16.840.1.101.2.1.8.3.1") { // Enum permissive.
+			if (tagType == OID::NATO_EnumeratedPermissive) { // Enum permissive.
 				Spiffing::Internal::parse_enum_cat<Clearance>(TagType::enumeratedPermissive, *this, &asn_clearance->securityCategories->list.array[i]->value);
-			} else if (tagType == "2.16.840.1.101.2.1.8.3.4") { // Enum restrictive.
+			} else if (tagType == OID::NATO_EnumeratedRestrictive) { // Enum restrictive.
 				Spiffing::Internal::parse_enum_cat<Clearance>(TagType::enumeratedRestrictive, *this, 	&asn_clearance->securityCategories->list.array[i]->value);
-			} else if (tagType == "2.16.840.1.101.2.1.8.3.0") { // Restrictive.
+			} else if (tagType == OID::NATO_RestrictiveBitmap) { // Restrictive.
 				Spiffing::Internal::parse_cat<Clearance, RestrictiveTag_t>(TagType::restrictive, &asn_DEF_RestrictiveTag, *this, &asn_clearance->securityCategories->list.array[i]->value);
-			} else if (tagType == "2.16.840.1.101.2.1.8.3.2") { // Permissive.
+			} else if (tagType == OID::NATO_PermissiveBitmap) { // Permissive.
 				Spiffing::Internal::parse_cat<Clearance, PermissiveTag_t>(TagType::permissive, &asn_DEF_PermissiveTag, *this, &asn_clearance->securityCategories->list.array[i]->value);
-			} else if (tagType == "2.16.840.1.101.2.1.8.2") { // SSLPriv
+			} else if (tagType == OID::SSLPrivilege) { // SSLPriv
 				Spiffing::Internal::parse_sslp_cat(*this, &asn_clearance->securityCategories->list.array[i]->value);
 			}
 		}
@@ -268,7 +268,7 @@ void Spiffing::Clearance::write_ber(std::string & output) {
 		asn_clearance->classList->size = (cls / 8) + 1;
 	}
 	// Category Encoding.
-	if (m_policy->privilegeId() == "2:16:840:1:101:2:1:8:2") {
+	if (m_policy->privilegeId() == OID::SSLPrivilege) {
 		asn_clearance->securityCategories = Internal::sslp_catencode(m_cats);
 	} else {
 		asn_clearance->securityCategories = Internal::nato_catencode(m_cats);

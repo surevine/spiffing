@@ -37,7 +37,6 @@ SOFTWARE.
 namespace Spiffing {
 	class Spif {
 	public:
-		Spif();
 		Spif(std::string const &, Format fmt);
 		Spif(std::string &&, Format fmt);
 		Spif(std::istream &, Format fmt);

@@ -39,12 +39,8 @@ SOFTWARE.
 
 using namespace Spiffing;
 
-Spif::Spif()
-: m_classifications() {
-}
-
 Spif::Spif(std::string const & s, Format fmt)
-: m_classifications() {
+: m_classifications(), m_rbacId("") {
 	parse(s, fmt);
 }
 
@@ -274,10 +270,14 @@ void Spif::parse(std::string const & s, Format fmt) {
 	auto rbacId = node->first_attribute("rbacId");
 	if (rbacId && rbacId->value()) {
 		m_rbacId = rbacId->value();
+	} else {
+		m_rbacId = OID::NATO;
 	}
 	auto privilegeId = node->first_attribute("privilegeId");
 	if (privilegeId && privilegeId->value()) {
 		m_privilegeId = privilegeId->value();
+	} else {
+		m_privilegeId = OID::NATO;
 	}
 	auto securityPolicyId = node->first_node("securityPolicyId");
 	if (securityPolicyId) {

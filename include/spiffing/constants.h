@@ -25,6 +25,7 @@ SOFTWARE.
 
 #ifndef SPIFFING_CONST_H
 #define SPIFFING_CONST_H
+#include <string>
 
 namespace Spiffing {
 	enum class Format {
@@ -45,6 +46,11 @@ namespace Spiffing {
 		notApplicable,
 		enumerated,
 		bitSet
+	};
+	enum class EnumeratedEncoding {
+		notApplicable,
+		permissive,
+		restrictive
 	};
 	typedef unsigned long lacv_t;
 	enum class OperationType {
@@ -74,6 +80,21 @@ namespace Spiffing {
 	class Marking;
 	class CategoryData;
 	class CategoryGroup;
+
+    // OID constants
+    namespace OID {
+        // RBAC / Privilege identifiers
+        std::string const NATO{"2.16.840.1.101.2.1.8.3"}; // ACP-145(A)
+        std::string const MISSI{"2.16.840.1.101.2.1.8.1"};
+        std::string const SSLPrivilege{"2.16.840.1.101.2.1.8.2"};
+
+        // ACP-145(A) types
+        std::string const NATO_RestrictiveBitmap{"2.16.840.1.101.2.1.8.3.0"};
+        std::string const NATO_PermissiveBitmap{"2.16.840.1.101.2.1.8.3.2"};
+        std::string const NATO_EnumeratedPermissive{"2.16.840.1.101.2.1.8.3.1"};
+        std::string const NATO_EnumeratedRestrictive{"2.16.840.1.101.2.1.8.3.4"};
+        std::string const NATO_Informative{"2.16.840.1.101.2.1.8.3.3"};
+    }
 }
 
 #endif

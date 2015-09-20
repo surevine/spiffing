@@ -100,17 +100,17 @@ void Label::parse_ber(std::string const & label) {
 	if (asn_label->security_categories) {
 		for (size_t i{0}; i != asn_label->security_categories->list.count; ++i) {
 			std::string tagType = Internal::oid2str(&asn_label->security_categories->list.array[i]->type);
-			if (tagType == "2.16.840.1.101.2.1.8.3.1") { // Enum permissive.
+			if (tagType == OID::NATO_EnumeratedPermissive) { // Enum permissive.
 				Internal::parse_enum_cat<Label>(TagType::enumeratedPermissive, *this, &asn_label->security_categories->list.array[i]->value);
-			} else if (tagType == "2.16.840.1.101.2.1.8.3.4") { // Enum restrictive.
+			} else if (tagType == OID::NATO_EnumeratedRestrictive) { // Enum restrictive.
 				Internal::parse_enum_cat<Label>(TagType::enumeratedRestrictive, *this, 	&asn_label->security_categories->list.array[i]->value);
-			} else if (tagType == "2.16.840.1.101.2.1.8.3.0") { // Restrictive.
+			} else if (tagType == OID::NATO_RestrictiveBitmap) { // Restrictive.
 				Internal::parse_cat<Label,RestrictiveTag_t>(TagType::restrictive, &asn_DEF_RestrictiveTag, *this, &asn_label->security_categories->list.array[i]->value);
-			} else if (tagType == "2.16.840.1.101.2.1.8.3.2") { // Permissive.
+			} else if (tagType == OID::NATO_PermissiveBitmap) { // Permissive.
 				Internal::parse_cat<Label,PermissiveTag_t>(TagType::permissive, &asn_DEF_PermissiveTag, *this, &asn_label->security_categories->list.array[i]->value);
-			} else if (tagType == "2.16.840.1.101.2.1.8.3.3") { // Informative
+			} else if (tagType == OID::NATO_Informative) { // Informative
 				Internal::parse_info_cat<Label>(*this, &asn_label->security_categories->list.array[i]->value);
-			} else if (tagType == "2.16.840.1.101.2.1.8.1") { // MISSI
+			} else if (tagType == OID::MISSI) { // MISSI
 				Internal::parse_missi_cat(*this, &asn_label->security_categories->list.array[i]->value);
 			}
 		}
@@ -243,9 +243,9 @@ void Label::write_ber(std::string & output) {
 	asn_label->security_classification = (long *)malloc(sizeof(long));
 	*asn_label->security_classification = m_class->lacv();
 	// Category Encoding.
-	if (m_policy->privilegeId() == "2:16:840:1:101:2:1:8:1") {
+	if (m_policy->rbacId() == OID::MISSI) {
 		asn_label->security_categories = Internal::missi_catencode(m_cats);
-	} else {
+	} else if (m_policy->rbacId() == OID::NATO) {
 		asn_label->security_categories = Internal::nato_catencode(m_cats);
 	}
 	// Actual encoding.

@@ -157,7 +157,7 @@ namespace {
       TagType ttype = cat->tag().tagType();
       Asn<SecurityCategory> asn_cat(&asn_DEF_SecurityCategory);
       asn_cat.alloc();
-      Internal::str2oid("2.16.840.1.101.2.1.8.3.3", &asn_cat->type);
+      Internal::str2oid(OID::NATO_Informative, &asn_cat->type);
       Asn<InformativeTag_t> asn_tag(&asn_DEF_InformativeTag);
       asn_tag.alloc();
       Internal::str2oid(tagSetId, &asn_tag->tagName);
@@ -185,6 +185,7 @@ namespace {
       Asn<SecurityTag> asn_tag(&asn_DEF_SecurityTag);
       asn_tag.alloc();
       Asn<TagType7Data> asn_t7(&asn_DEF_TagType7Data);
+      asn_t7.alloc();
       if (cat->tag().informativeEncoding() == InformativeEncoding::enumerated) {
         while (i != cats.end() && tagSetId == (*i)->tag().tagSet().id() && ttype == (*i)->tag().tagType()) {
           setatt(reinterpret_cast<SecurityAttributes &>(asn_t7->choice.securityAttributes.list), (*i)->lacv());
@@ -198,7 +199,7 @@ namespace {
         }
         asn_t7->present = TagType7Data_PR_bitSetAttributes;
       }
-      ANY_fromType(&asn_tag->choice.freeFormField, &asn_DEF_TagType7Data, &*asn_t7);
+      ANY_fromType((ANY_t*)&asn_tag->choice.freeFormField, &asn_DEF_TagType7Data, &*asn_t7);
       asn_tag->present = SecurityTag_PR_freeFormField;
       asn_cats->securityTags.list.array[asn_cats->securityTags.list.count] = asn_tag.release();
       asn_cats->securityTags.list.count++;
@@ -208,6 +209,7 @@ namespace {
       TagType ttype = (*i)->tag().tagType();
       std::string tagSetId = cat->tag().tagSet().id();
       Asn<SecurityTag> asn_tag(&asn_DEF_SecurityTag);
+      asn_tag.alloc();
       while (i != cats.end() && tagSetId == (*i)->tag().tagSet().id() && ttype == (*i)->tag().tagType()) {
         setatt(reinterpret_cast<SecurityAttributes &>(asn_tag->choice.enumeratedAttributes.attributeFlags.list),
                (*i)->lacv());
@@ -222,6 +224,7 @@ namespace {
       TagType ttype = (*i)->tag().tagType();
       std::string tagSetId = cat->tag().tagSet().id();
       Asn<SecurityTag> asn_tag(&asn_DEF_SecurityTag);
+      asn_tag.alloc();
       while (i != cats.end() && tagSetId == (*i)->tag().tagSet().id() && ttype == (*i)->tag().tagType()) {
         setbit(asn_tag->choice.permissivebitMap.attributeFlags,
                (*i)->lacv());
@@ -236,6 +239,7 @@ namespace {
       TagType ttype = (*i)->tag().tagType();
       std::string tagSetId = cat->tag().tagSet().id();
       Asn<SecurityTag> asn_tag(&asn_DEF_SecurityTag);
+      asn_tag.alloc();
       while (i != cats.end() && tagSetId == (*i)->tag().tagSet().id() && ttype == (*i)->tag().tagType()) {
         setbit(asn_tag->choice.restrictivebitMap.attributeFlags,
                (*i)->lacv());
@@ -250,6 +254,7 @@ namespace {
       TagType ttype = (*i)->tag().tagType();
       std::string tagSetId = cat->tag().tagSet().id();
       Asn<SecurityTagPrivilege> asn_tag(&asn_DEF_SecurityTagPrivilege);
+      asn_tag.alloc();
       while (i != cats.end() && tagSetId == (*i)->tag().tagSet().id() && ttype == (*i)->tag().tagType()) {
         setatt(reinterpret_cast<SecurityAttributes &>(asn_tag->choice.enumeratedAttributes.list),
                (*i)->lacv());
@@ -264,6 +269,7 @@ namespace {
       TagType ttype = (*i)->tag().tagType();
       std::string tagSetId = cat->tag().tagSet().id();
       Asn<SecurityTagPrivilege> asn_tag(&asn_DEF_SecurityTagPrivilege);
+      asn_tag.alloc();
       while (i != cats.end() && tagSetId == (*i)->tag().tagSet().id() && ttype == (*i)->tag().tagType()) {
         setbit(asn_tag->choice.permissivebitMap,
                (*i)->lacv());
@@ -278,6 +284,7 @@ namespace {
       TagType ttype = (*i)->tag().tagType();
       std::string tagSetId = cat->tag().tagSet().id();
       Asn<SecurityTagPrivilege> asn_tag(&asn_DEF_SecurityTagPrivilege);
+      asn_tag.alloc();
       while (i != cats.end() && tagSetId == (*i)->tag().tagSet().id() && ttype == (*i)->tag().tagType()) {
         setbit(asn_tag->choice.restrictivebitMap,
                (*i)->lacv());
@@ -300,22 +307,20 @@ SecurityCategories * Internal::nato_catencode(std::set<CategoryRef> const &cats)
     auto const & cat = *i;
     switch (cat->tag().tagType()) {
     case TagType::permissive:
-      catencodebits<PermissiveTag_t>(asn_cats, cats, "2.16.840.1.101.2.1.8.3.2", &asn_DEF_PermissiveTag, i);
+      catencodebits<PermissiveTag_t>(asn_cats, cats, OID::NATO_PermissiveBitmap, &asn_DEF_PermissiveTag, i);
       break;
     case TagType::restrictive:
-      catencodebits<RestrictiveTag_t>(asn_cats, cats, "2.16.840.1.101.2.1.8.3.0", &asn_DEF_RestrictiveTag, i);
+      catencodebits<RestrictiveTag_t>(asn_cats, cats, OID::NATO_RestrictiveBitmap, &asn_DEF_RestrictiveTag, i);
       break;
     case TagType::enumeratedPermissive:
-      catencodeenum(asn_cats, cats, "2.16.840.1.101.2.1.8.3.1", i);
+      catencodeenum(asn_cats, cats, OID::NATO_EnumeratedPermissive, i);
       break;
     case TagType::enumeratedRestrictive:
-      catencodeenum(asn_cats, cats, "2.16.840.1.101.2.1.8.3.4", i);
+      catencodeenum(asn_cats, cats, OID::NATO_EnumeratedRestrictive, i);
       break;
     case TagType::informative:
       catencodeinform(asn_cats, cats, i);
       break;
-    default:
-      ++i;
     }
   }
   return asn_cats.release();
@@ -327,7 +332,7 @@ SecurityCategories * Internal::missi_catencode(const std::set<::Spiffing::Catego
   asn_cats.alloc();
   Asn<SecurityCategory_t> asn_cat(&asn_DEF_SecurityCategories);
   asn_cat.alloc();
-  Internal::str2oid("2.16.840.1.101.2.1.8.1", &asn_cat->type);
+  Internal::str2oid(OID::MISSI, &asn_cat->type);
   Asn<MissiSecurityCategories_t> catinfo(&asn_DEF_MissiSecurityCategories);
   catinfo.alloc();
   catinfo->choice.prbacSecurityCategories.list.array = (NamedTagSet **)calloc(cats.size(), sizeof(NamedTagSet *));
@@ -356,9 +361,8 @@ SecurityCategories * Internal::missi_catencode(const std::set<::Spiffing::Catego
         case TagType::informative:
           missi_catencodeinform(asn_tagset, cats, i);
           break;
-        default:
-          ++i;
       }
+      if (i == cats.end()) break;
     }
     catinfo->choice.prbacSecurityCategories.list.array[catinfo->choice.prbacSecurityCategories.list.count++] = asn_tagset.release();
   }
@@ -377,7 +381,7 @@ SecurityCategories * Internal::sslp_catencode(const std::set<::Spiffing::Categor
   asn_cats.alloc();
   Asn<SecurityCategory_t> asn_cat(&asn_DEF_SecurityCategories);
   asn_cat.alloc();
-  Internal::str2oid("2.16.840.1.101.2.1.8.2", &asn_cat->type);
+  Internal::str2oid(OID::SSLPrivilege, &asn_cat->type);
   Asn<SSLPrivileges> catinfo(&asn_DEF_SSLPrivileges);
   catinfo.alloc();
   catinfo->list.array = (NamedTagSetPrivilege **)calloc(cats.size(), sizeof(NamedTagSetPrivilege *));
@@ -405,6 +409,7 @@ SecurityCategories * Internal::sslp_catencode(const std::set<::Spiffing::Categor
         default:
           ++i;
       }
+      if (i == cats.end()) break;
     }
     catinfo->list.array[catinfo->list.count++] = asn_tagset.release();
   }
@@ -468,7 +473,7 @@ void Internal::parse_missi_cat(Label & label, ANY * any) {
               break;
         case SecurityTag_PR_freeFormField: {
           Asn<TagType7Data> asn_t7(&asn_DEF_TagType7Data);
-          ANY_to_type(&tag->choice.freeFormField, &asn_DEF_TagType7Data, asn_t7.addr());
+          ANY_to_type((ANY_t*)&tag->choice.freeFormField, &asn_DEF_TagType7Data, asn_t7.addr());
           TagType tagType = TagType::informative;
           if (asn_t7->present == TagType7Data_PR_bitSetAttributes) {
             BIT_STRING_t &bits = asn_t7->choice.bitSetAttributes;
