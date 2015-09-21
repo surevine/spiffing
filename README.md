@@ -11,16 +11,24 @@ The beginning of a rippingly good SPIF/Label/Clearance handling library.
 
 It's absolutely Top Hole!
 
-Currently, this is experimental C++11 code, which will generate Display Markings for Labels (and Clearances), and perform an Access Control Decision. It handles ACP-145A categories,
-BER/DER labels and clearances (X.841/ESS syntaxes), and the Open XML SPIF. There's
+Currently, this is experimental C++11 code, which will generate Display Markings for Labels (and Clearances), and
+perform an Access Control Decision. It handles ACP-145(A) and SDN.801c (MISSI) categories,
+BER/DER labels and clearances (X.841/ESS syntaxes), and the [Open XML SPIF](http://xmpspif.org/). There's
 also support for an XML format (primarily for testing).
 
 ## TODO
 
 On the list:
-* Moar test (though the spifflicator has high code coverage as-is, and is valgrind checked)
+* Moar test always (though the spifflicator has high code coverage as-is, and is valgrind checked)
 * Equivalent Policy handling
-* Likely some parts of Display Marking handling missing.
+* Enterprise Data Header format labelling
+* NATO XML Labelling format (if this can be released)
+* Likely some parts of Display Marking handling missing
+
+## Help wanted
+
+It's amazingly difficult to find valid examples of policies, labels, and display markings. Any test vectors would be
+gratefully received, and can be handled outside the source tree and under suitable handling rules as required.
 
 ## Pre-Build
 
@@ -34,7 +42,10 @@ __Note:__ This library uses a fork of [asn1c](https://github.com/dwd/asn1c) from
 git submodule update --init
 ```
 
-This will also pull down [rapidxml](https://github.com/dwd/rapidxml) for you. Then you'll need to build `asn1c`:
+This will also pull down [rapidxml](https://github.com/dwd/rapidxml) for you. This is just headers (it's entirely
+template-based), and so needs no build step.
+
+Then you'll need to build `asn1c`:
 
 ```
 cd deps/asn1c
@@ -71,6 +82,11 @@ clearances between formats (but generally from BER to XML, or XML to XML):
 > Loaded SPIF 1.1  
 > Label marking is 'Stupid Confidential'  
 > Writing stupid-label.xml as XML.  
+
+## CMake
+
+There is also a CMakeLists.txt file; this is really there to drive JetBrains's CLion IDE, and will not perform the ASN.1
+build step.
 
 ## Testing
 
