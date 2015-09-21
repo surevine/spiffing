@@ -35,7 +35,7 @@ SOFTWARE.
 namespace Spiffing {
 	class Label {
 	public:
-		Label(Spif const & spif, std::string const & label, Format fmt);
+		Label(std::string const & label, Format fmt);
 		void parse(std::string const & label, Format fmt);
 		void write(Format fmt, std::string & output);
 
@@ -50,7 +50,7 @@ namespace Spiffing {
 		}
 		bool hasCategory(CategoryRef const & c) const;
 		Spif const & policy() const {
-			return m_policy;
+			return *m_policy;
 		}
 
 		void addCategory(std::shared_ptr<Category> const & cat);
@@ -62,7 +62,7 @@ namespace Spiffing {
 		void write_ber(std::string &);
 		void write_xml(std::string &);
 
-		Spif const & m_policy;
+		std::shared_ptr<Spif> m_policy;
 		std::string m_policy_id;
 		std::shared_ptr<Classification> m_class;
 		std::set<CategoryRef> m_cats;

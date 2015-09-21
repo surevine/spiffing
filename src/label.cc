@@ -34,13 +34,14 @@ SOFTWARE.
 #include <spiffing/tagset.h>
 #include <spiffing/tag.h>
 #include <spiffing/catutils.h>
+#include <spiffing/spiffing.h>
 #include <rapidxml.hpp>
 #include <rapidxml_print.hpp>
 #include <sstream>
 
 using namespace Spiffing;
 
-Label::Label(Spif const & policy, std::string const & label, Format fmt) : m_policy(policy), m_class(0) {
+Label::Label(std::string const & label, Format fmt) : m_policy(), m_class(0) {
 	parse(label, fmt);
 }
 
@@ -86,28 +87,31 @@ void Label::parse_ber(std::string const & label) {
 	if (rval.code != RC_OK) {
 		throw std::runtime_error("Failed to parse BER/DER encoded label");
 	}
-	if (asn_label->security_classification) {
-		m_class = m_policy.classificationLookup(*asn_label->security_classification);
-	}
 	if (asn_label->security_policy_identifier) {
 		m_policy_id = Internal::oid2str(asn_label->security_policy_identifier);
-		if (m_policy.policy_id() != m_policy_id) {
+		m_policy = Site::site().spif(m_policy_id);
+		if (m_policy->policy_id() != m_policy_id) {
 			throw std::runtime_error("Policy mismatch: " + m_policy_id);
 		}
 	} else throw std::runtime_error("No policy in label");
+	if (asn_label->security_classification) {
+		m_class = m_policy->classificationLookup(*asn_label->security_classification);
+	}
 	if (asn_label->security_categories) {
 		for (size_t i{0}; i != asn_label->security_categories->list.count; ++i) {
 			std::string tagType = Internal::oid2str(&asn_label->security_categories->list.array[i]->type);
-			if (tagType == "2.16.840.1.101.2.1.8.3.1") { // Enum permissive.
+			if (tagType == OID::NATO_EnumeratedPermissive) { // Enum permissive.
 				Internal::parse_enum_cat<Label>(TagType::enumeratedPermissive, *this, &asn_label->security_categories->list.array[i]->value);
-			} else if (tagType == "2.16.840.1.101.2.1.8.3.4") { // Enum restrictive.
+			} else if (tagType == OID::NATO_EnumeratedRestrictive) { // Enum restrictive.
 				Internal::parse_enum_cat<Label>(TagType::enumeratedRestrictive, *this, 	&asn_label->security_categories->list.array[i]->value);
-			} else if (tagType == "2.16.840.1.101.2.1.8.3.0") { // Restrictive.
+			} else if (tagType == OID::NATO_RestrictiveBitmap) { // Restrictive.
 				Internal::parse_cat<Label,RestrictiveTag_t>(TagType::restrictive, &asn_DEF_RestrictiveTag, *this, &asn_label->security_categories->list.array[i]->value);
-			} else if (tagType == "2.16.840.1.101.2.1.8.3.2") { // Permissive.
+			} else if (tagType == OID::NATO_PermissiveBitmap) { // Permissive.
 				Internal::parse_cat<Label,PermissiveTag_t>(TagType::permissive, &asn_DEF_PermissiveTag, *this, &asn_label->security_categories->list.array[i]->value);
-			} else if (tagType == "2.16.840.1.101.2.1.8.3.3") { // Informative
+			} else if (tagType == OID::NATO_Informative) { // Informative
 				Internal::parse_info_cat<Label>(*this, &asn_label->security_categories->list.array[i]->value);
+			} else if (tagType == OID::MISSI) { // MISSI
+				Internal::parse_missi_cat(*this, &asn_label->security_categories->list.array[i]->value);
 			}
 		}
 	}
@@ -131,44 +135,45 @@ void Label::parse_xml(std::string const & label) {
     if (securityPolicy) {
       auto idattr = securityPolicy->first_attribute("id");
       if (idattr) m_policy_id = idattr->value();
-			if (m_policy.policy_id() != m_policy_id) {
-				throw std::runtime_error("Policy mismatch: " + m_policy_id);
-			}
-		} else throw std::runtime_error("No policy in label");
-	  // Get classification.
+		m_policy = Site::site().spif(m_policy_id);
+		if (m_policy->policy_id() != m_policy_id) {
+			throw std::runtime_error("Policy mismatch: " + m_policy_id);
+		}
+	} else throw std::runtime_error("No policy in label");
+	// Get classification.
     auto securityClassification = root->first_node("classification");
     if (securityClassification) {
         auto lacvattr = securityClassification->first_attribute("lacv");
-				if (lacvattr) {
-					lacv_t lacv = std::stoull(lacvattr->value());
-					m_class = m_policy.classificationLookup(lacv);
-				}
+		if (lacvattr) {
+			lacv_t lacv = std::stoull(lacvattr->value());
+			m_class = m_policy->classificationLookup(lacv);
+		}
     }
     // Find tagsets.
     for (auto tag = root->first_node("tag"); tag; tag = tag->next_sibling("tag")) {
         auto typeattr = tag->first_attribute("type");
         if (!typeattr) throw std::runtime_error("tag without type");
         std::string tag_type = typeattr->value();
-				TagType type;
-				if (tag_type == "restrictive") {
-					type = TagType::restrictive;
-				} else if (tag_type == "permissive") {
-					type = TagType::permissive;
-				} else if (tag_type == "enumeratedPermissive") {
-					type = TagType::enumeratedPermissive;
-				} else if (tag_type == "enumeratedRestrictive") {
-					type = TagType::enumeratedRestrictive;
-				} else if (tag_type == "informative") {
-					type = TagType::informative;
-				} else throw std::runtime_error("unsupported tag type " + tag_type);
-				auto idattr = tag->first_attribute("id");
-				if (!idattr) throw std::runtime_error("tag without id");
-				std::string id = idattr->value();
-				auto lacvattr = tag->first_attribute("lacv");
-				if (!lacvattr) throw std::runtime_error("tag without lacv");
-				Lacv lacv = Lacv::parse(std::string(lacvattr->value(), lacvattr->value_size()));
-				auto cat = m_policy.tagSetLookup(id)->categoryLookup(type, lacv);
-				addCategory(cat);
+		TagType type;
+		if (tag_type == "restrictive") {
+			type = TagType::restrictive;
+		} else if (tag_type == "permissive") {
+			type = TagType::permissive;
+		} else if (tag_type == "enumeratedPermissive") {
+			type = TagType::enumeratedPermissive;
+		} else if (tag_type == "enumeratedRestrictive") {
+			type = TagType::enumeratedRestrictive;
+		} else if (tag_type == "informative") {
+			type = TagType::informative;
+		} else throw std::runtime_error("unsupported tag type " + tag_type);
+		auto idattr = tag->first_attribute("id");
+		if (!idattr) throw std::runtime_error("tag without id");
+		std::string id = idattr->value();
+		auto lacvattr = tag->first_attribute("lacv");
+		if (!lacvattr) throw std::runtime_error("tag without lacv");
+		Lacv lacv = Lacv::parse(std::string(lacvattr->value(), lacvattr->value_size()));
+		auto cat = m_policy->tagSetLookup(id)->categoryLookup(type, lacv);
+		addCategory(cat);
     }
 }
 
@@ -238,7 +243,11 @@ void Label::write_ber(std::string & output) {
 	asn_label->security_classification = (long *)malloc(sizeof(long));
 	*asn_label->security_classification = m_class->lacv();
 	// Category Encoding.
-	asn_label->security_categories = Internal::catencode(m_cats);
+	if (m_policy->rbacId() == OID::MISSI) {
+		asn_label->security_categories = Internal::missi_catencode(m_cats);
+	} else if (m_policy->rbacId() == OID::NATO) {
+		asn_label->security_categories = Internal::nato_catencode(m_cats);
+	}
 	// Actual encoding.
 	der_encode(&asn_DEF_ESSSecurityLabel, &*asn_label, Internal::write_to_string, &output);
 }

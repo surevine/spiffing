@@ -37,7 +37,6 @@ SOFTWARE.
 namespace Spiffing {
 	class Spif {
 	public:
-		Spif();
 		Spif(std::string const &, Format fmt);
 		Spif(std::string &&, Format fmt);
 		Spif(std::istream &, Format fmt);
@@ -54,6 +53,14 @@ namespace Spiffing {
 			return m_oid;
 		}
 
+		std::string const & privilegeId() const {
+			return m_privilegeId;
+		}
+
+		std::string const & rbacId() const {
+			return m_rbacId;
+		}
+
 		std::shared_ptr<TagSet> const & tagSetLookup(std::string const &) const;
 		std::shared_ptr<TagSet> const & tagSetLookupByName(std::string const &) const;
 		std::shared_ptr<Classification> const & classificationLookup(lacv_t cls) const {
@@ -65,6 +72,8 @@ namespace Spiffing {
 	private:
 		std::string m_name;
 		std::string m_oid;
+		std::string m_privilegeId; /* category syntax used in ASN clearances */
+		std::string m_rbacId;      /* category syntax used in ASN labels */
 		std::map<lacv_t,std::shared_ptr<Classification>> m_classifications;
 		std::map<std::string /* OID */, std::shared_ptr<TagSet>> m_tagSets;
 		std::map<std::string /* Name */, std::shared_ptr<TagSet>> m_tagSetsByName;

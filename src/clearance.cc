@@ -37,9 +37,10 @@ SOFTWARE.
 #include <rapidxml.hpp>
 #include <rapidxml_print.hpp>
 #include <sstream>
+#include <spiffing/spiffing.h>
 
-Spiffing::Clearance::Clearance(Spiffing::Spif const & policy, std::string const & clearance, Spiffing::Format fmt)
-: m_policy(policy) {
+Spiffing::Clearance::Clearance(std::string const & clearance, Spiffing::Format fmt)
+: m_policy() {
 	parse(clearance, fmt);
 }
 
@@ -96,17 +97,20 @@ void Spiffing::Clearance::parse_ber(std::string const & clearance) {
 		}
 	}
 	m_policy_id = Spiffing::Internal::oid2str(&asn_clearance->policyId);
+	m_policy = Site::site().spif(m_policy_id);
 	if (asn_clearance->securityCategories) {
 		for (size_t i{0}; i != asn_clearance->securityCategories->list.count; ++i) {
 			std::string tagType = Spiffing::Internal::oid2str(&asn_clearance->securityCategories->list.array[i]->type);
-			if (tagType == "2.16.840.1.101.2.1.8.3.1") { // Enum permissive.
+			if (tagType == OID::NATO_EnumeratedPermissive) { // Enum permissive.
 				Spiffing::Internal::parse_enum_cat<Clearance>(TagType::enumeratedPermissive, *this, &asn_clearance->securityCategories->list.array[i]->value);
-			} else if (tagType == "2.16.840.1.101.2.1.8.3.4") { // Enum restrictive.
+			} else if (tagType == OID::NATO_EnumeratedRestrictive) { // Enum restrictive.
 				Spiffing::Internal::parse_enum_cat<Clearance>(TagType::enumeratedRestrictive, *this, 	&asn_clearance->securityCategories->list.array[i]->value);
-			} else if (tagType == "2.16.840.1.101.2.1.8.3.0") { // Restrictive.
+			} else if (tagType == OID::NATO_RestrictiveBitmap) { // Restrictive.
 				Spiffing::Internal::parse_cat<Clearance, RestrictiveTag_t>(TagType::restrictive, &asn_DEF_RestrictiveTag, *this, &asn_clearance->securityCategories->list.array[i]->value);
-			} else if (tagType == "2.16.840.1.101.2.1.8.3.2") { // Permissive.
+			} else if (tagType == OID::NATO_PermissiveBitmap) { // Permissive.
 				Spiffing::Internal::parse_cat<Clearance, PermissiveTag_t>(TagType::permissive, &asn_DEF_PermissiveTag, *this, &asn_clearance->securityCategories->list.array[i]->value);
+			} else if (tagType == OID::SSLPrivilege) { // SSLPriv
+				Spiffing::Internal::parse_sslp_cat(*this, &asn_clearance->securityCategories->list.array[i]->value);
 			}
 		}
 	}
@@ -145,7 +149,8 @@ void Spiffing::Clearance::parse_xml(std::string const & clearance) {
 		if (securityPolicy) {
 			auto idattr = securityPolicy->first_attribute("id");
 			if (idattr) m_policy_id = idattr->value();
-			if (m_policy.policy_id() != m_policy_id) {
+			m_policy = Site::site().spif(m_policy_id);
+			if (m_policy->policy_id() != m_policy_id) {
 				throw std::runtime_error("Policy mismatch: " + m_policy_id);
 			}
 		} else throw std::runtime_error("No policy in clearance");
@@ -178,7 +183,7 @@ void Spiffing::Clearance::parse_xml(std::string const & clearance) {
 				auto lacvattr = tag->first_attribute("lacv");
 				if (!lacvattr) throw std::runtime_error("tag without lacv");
 				Spiffing::Lacv lacv = Spiffing::Lacv::parse(std::string(lacvattr->value(), lacvattr->value_size()));
-				auto cat = m_policy.tagSetLookup(id)->categoryLookup(type, lacv);
+				auto cat = m_policy->tagSetLookup(id)->categoryLookup(type, lacv);
 				addCategory(cat);
 		}
 }
@@ -263,7 +268,11 @@ void Spiffing::Clearance::write_ber(std::string & output) {
 		asn_clearance->classList->size = (cls / 8) + 1;
 	}
 	// Category Encoding.
-	asn_clearance->securityCategories = Spiffing::Internal::catencode(m_cats);
+	if (m_policy->privilegeId() == OID::SSLPrivilege) {
+		asn_clearance->securityCategories = Internal::sslp_catencode(m_cats);
+	} else {
+		asn_clearance->securityCategories = Internal::nato_catencode(m_cats);
+	}
 	// Actual encoding.
 	der_encode(&asn_DEF_Clearance, &*asn_clearance, Spiffing::Internal::write_to_string, &output);
 }

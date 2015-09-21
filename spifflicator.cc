@@ -26,6 +26,7 @@ SOFTWARE.
 #include <spiffing/spif.h>
 #include <spiffing/label.h>
 #include <spiffing/clearance.h>
+#include <spiffing/spiffing.h>
 #include <fstream>
 #include <iostream>
 
@@ -37,20 +38,21 @@ int main(int argc, char *argv[]) {
 			return 0;
 		}
 		std::ifstream spif_file(argv[1]);
-		Spif spif(spif_file, Format::XML);
-		std::cout << "Loaded SPIF " << spif.policy_id() << std::endl;
+		Site site;
+		auto spif = site.load(spif_file);
+		std::cout << "Loaded SPIF " << spif->policy_id() << std::endl;
 		if (argc <= 2) return 0;
 		std::ifstream label_file(argv[2]);
 		std::string label_str{std::istreambuf_iterator<char>(label_file), std::istreambuf_iterator<char>()};
-		Label label(spif, label_str, Format::ANY);
-		std::cout << "Label marking is '" << spif.displayMarking(label) << "'" << std::endl;
-		if (!spif.valid(label)) std::cout << "Label is not valid!" << std::endl;
+		Label label(label_str, Format::ANY);
+		std::cout << "Label marking is '" << spif->displayMarking(label) << "'" << std::endl;
+		if (!label.policy().valid(label)) std::cout << "Label is not valid!" << std::endl;
 		if (argc <= 3) return 0;
 		std::ifstream clearance_file(argv[3]);
 		std::string clearance_str{std::istreambuf_iterator<char>(clearance_file), std::istreambuf_iterator<char>()};
-		Clearance clearance(spif, clearance_str, Format::ANY);
-		std::cout << "Clearance marking is '" << spif.displayMarking(clearance) << "'" << std::endl;
-		std::cout << "ACDF decision is " << (spif.acdf(label, clearance) ? "PASS" : "FAIL") << std::endl;
+		Clearance clearance(clearance_str, Format::ANY);
+		std::cout << "Clearance marking is '" << spif->displayMarking(clearance) << "'" << std::endl;
+		std::cout << "ACDF decision is " << (spif->acdf(label, clearance) ? "PASS" : "FAIL") << std::endl;
 	} catch(std::exception & e) {
 		std::cerr << "Dude, exception: " << e.what() << std::endl;
 		return 1;

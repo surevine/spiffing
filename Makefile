@@ -64,7 +64,7 @@ SPIFFINGOBJS=$(SPIFFINGSOURCE:src/%.cc=$(SPIFFINGBUILD)/spiffing/%.o)
 DEBUG?=-g --coverage #-fprofile-dir=./build/ #-fprofile-generate=./build/ #-DEMIT_ASN_DEBUG=1
 CXXFLAGS=-std=c++11
 
-gen-ber/%.c gen-ber/%.h: ESSSecurityLabel.asn Clearance.asn acp145.asn
+gen-ber/%.c gen-ber/%.h: ESSSecurityLabel.asn Clearance.asn acp145.asn SSLPrivileges.asn MissiSecurityCategories.asn
 	@mkdir -p $(dir $@)
 	(cd $(dir $@) && $(ASN1C) -fwide-types $(^:%=../%))
 	@mv gen-ber/converter-sample.c .
