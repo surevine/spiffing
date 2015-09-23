@@ -56,7 +56,7 @@ coverage: quick-tests
 	@genhtml --output-directory report/lcov/ build/spiffing.info
 
 
-GENBERSOURCE=$(wildcard gen-ber/*.c) gen-ber/ESSSecurityLabel.c
+GENBERSOURCE=$(wildcard gen-ber/*.c) gen-ber/.marker
 GENBEROBJS=$(GENBERSOURCE:.c=.o)
 SPIFFINGSOURCE=$(wildcard src/*.cc)
 SPIFFINGOBJS=$(SPIFFINGSOURCE:src/%.cc=$(SPIFFINGBUILD)/spiffing/%.o)
@@ -64,18 +64,22 @@ SPIFFINGOBJS=$(SPIFFINGSOURCE:src/%.cc=$(SPIFFINGBUILD)/spiffing/%.o)
 DEBUG?=-g --coverage #-fprofile-dir=./build/ #-fprofile-generate=./build/ #-DEMIT_ASN_DEBUG=1
 CXXFLAGS=-std=c++11
 
-gen-ber/%.c gen-ber/%.h: ESSSecurityLabel.asn Clearance.asn acp145.asn SSLPrivileges.asn MissiSecurityCategories.asn
+gen-ber/.marker: ESSSecurityLabel.asn Clearance.asn acp145.asn SSLPrivileges.asn MissiSecurityCategories.asn
 	@mkdir -p $(dir $@)
+	@touch gen-ber/.marker
 	(cd $(dir $@) && $(ASN1C) -fwide-types $(^:%=../%))
 	@mv gen-ber/converter-sample.c .
 	@echo $(GENBEROBJS) $(GENBERSOURCE)
 
-converter-sample.c: gen-ber/ESSSecurityLabel.c
+gen-ber/%.c gen-ber/%.h: gen-ber/.marker
+	@echo "ASN.1 Parsing"
 
-.PRECIOUS: converter-sample.c gen-ber/%.c gen-ber/%.h
+converter-sample.c: gen-ber/.marker
+
+.PRECIOUS: converter-sample.c gen-ber/%.c gen-ber/%.h gen-ber/.marker
 
 ifeq (0,$(MAKELEVEL))
-build/libspiffing-asn.a: $(GENBEROBJS)
+build/libspiffing-asn.a: $(GENBEROBJS) gen-ber/.marker
 	@$(MAKE) submake
 else
 build/libspiffing-asn.a: $(GENBEROBJS)
