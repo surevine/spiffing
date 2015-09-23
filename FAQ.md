@@ -43,7 +43,7 @@ This means that a Clearance has a set of classifications; it's not just one. If 
 your clearance would therefore include TLP:AMBER and TLP:GREEN explicitly.
 
 Clearances are also used to express what information can legally pass through certain channels, because that channel
-isn't encrypted, goes to a forign power, or whatever.
+isn't encrypted, goes to a foreign power, or whatever.
 
 Some systems prefer to use a label as a clearance; this is problematic because a clearance isn't validated but a label
 is (or should be), and label used in this way has to indicate a clearance "up to" a particular classification.
