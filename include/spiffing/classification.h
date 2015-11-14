@@ -36,8 +36,6 @@ namespace Spiffing {
 	class Classification {
 	public:
 		Classification(lacv_t lacv, std::string const & name, unsigned long hierarchy, bool obsolete=false);
-		void colour(std::string const &);
-		std::string const & color() const;
 		bool operator < (Classification const &) const;
 
 		lacv_t lacv() const {
@@ -59,9 +57,17 @@ namespace Spiffing {
 		Marking const & marking(std::unique_ptr<Marking> && m) {
 			m_marking = std::move(m);
 		}
+		std::string const & fgcolour() const {
+			return m_fgcolour;
+		}
+		std::string const & fgcolour(std::string const & c) {
+			m_fgcolour = c;
+			return m_fgcolour;
+		}
 	private:
 		lacv_t m_lacv;
 		std::string const m_name;
+		std::string m_fgcolour;
 		unsigned long m_hierarchy;
 		bool m_obsolete;
 		std::set<std::unique_ptr<CategoryGroup>> m_reqCats;

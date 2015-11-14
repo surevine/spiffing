@@ -61,6 +61,10 @@ namespace Spiffing {
 			return m_rbacId;
 		}
 
+		std::string const & name() const {
+			return m_name;
+		}
+
 		std::shared_ptr<TagSet> const & tagSetLookup(std::string const &) const;
 		std::shared_ptr<TagSet> const & tagSetLookupByName(std::string const &) const;
 		std::shared_ptr<Classification> const & classificationLookup(lacv_t cls) const {

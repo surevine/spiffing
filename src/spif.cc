@@ -206,6 +206,10 @@ namespace {
 			cls->addRequiredCategory(parseCategoryGroup(reqCat));
 		}
 		cls->marking(parseMarking(classification));
+		auto color_a = classification->first_attribute("color");
+		if (color_a && color_a->value()) {
+			cls->fgcolour(color_a->value());
+		}
 		return cls;
 	}
 

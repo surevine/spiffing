@@ -61,7 +61,7 @@ GENBEROBJS=$(GENBERSOURCE:.c=.o)
 SPIFFINGSOURCE=$(wildcard src/*.cc)
 SPIFFINGOBJS=$(SPIFFINGSOURCE:src/%.cc=$(SPIFFINGBUILD)/spiffing/%.o)
 
-DEBUG?=-g --coverage #-fprofile-dir=./build/ #-fprofile-generate=./build/ #-DEMIT_ASN_DEBUG=1
+#DEBUG?=-g --coverage #-fprofile-dir=./build/ #-fprofile-generate=./build/ #-DEMIT_ASN_DEBUG=1
 CXXFLAGS=-std=c++11
 
 gen-ber/.marker: ESSSecurityLabel.asn Clearance.asn acp145.asn SSLPrivileges.asn MissiSecurityCategories.asn
@@ -96,8 +96,8 @@ submake: build/libspiffing-asn.a
 	@echo Done
 
 gen-ber/%.o: gen-ber/%.c
-	@echo [CC] $@
-	@$(CC) $(DEBUG) -c -o $@ -Igen-ber/ $^
+	@echo [CC PIC] $@
+	@$(CC) -fPIC $(DEBUG) -c -o $@ -Igen-ber/ $^
 
 clean:
 	@echo [CLEAN]
@@ -121,9 +121,9 @@ clearance-parser: build/clearance-parser.o build/libspiffing-asn.a
 	@$(CC) $(DEBUG) -o $@ -Lbuild/ $< -lspiffing-asn
 
 $(SPIFFINGBUILD)/spiffing/%.o: src/%.cc gen-ber/ANY.h
-	@echo [C++] $@
+	@echo [C++ PIC] $@
 	@mkdir -p $(dir $@)
-	@$(CXX) $(DEBUG) $(CXXFLAGS) -Iinclude/ -Igen-ber/ -Ideps/rapidxml/ -o $@ -MD -MF $(@:%.o=%.d) -c $<
+	@$(CXX) -fPIC $(DEBUG) $(CXXFLAGS) -Iinclude/ -Igen-ber/ -Ideps/rapidxml/ -o $@ -MD -MF $(@:%.o=%.d) -c $<
 
 $(SPIFFINGBUILD)/%.o: %.cc
 	@echo [C++] $@

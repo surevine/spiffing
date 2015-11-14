@@ -1,0 +1,69 @@
+<SPIF xmlns="http://www.xmlspif.org/spif"
+      creationDate="2015-09-24 09:23:00"
+      rbacId="2.16.840.1.101.2.1.8.3"
+      privilegeId="2.16.840.1.101.2.1.8.3"
+      originatorDN="cn=Dave Cridland,o=Survine,c=GB"
+      schemaVersion="2.0"
+      keyIdentifier="">
+    <defaultSecurityPolicyId name="Default" id="1.1"/>
+    <securityPolicyId name="TLPX" id="1.2.826.0.1.6726289.0.1"/>
+    <equivalentPolicies>
+        <equivalentPolicy name="TLP" id="1.2.826.0.1.6726289.0.2"/>
+    </equivalentPolicies>
+    <securityClassifications>
+        <securityClassification name="WHITE" lacv="10" hierarchy="1" color="white">
+            <equivalentClassification policyRef="TLP" lacv="10" applied="both"/>
+        </securityClassification>
+        <securityClassification name="GREEN" lacv="11" hierarchy="2" color="green">
+            <equivalentClassification policyRef="TLP" lacv="11" applied="both"/>
+        </securityClassification>
+        <securityClassification name="AMBER" lacv="12" hierarchy="3" color="orange">
+            <equivalentClassification policyRef="TLP" lacv="12" applied="both"/>
+        </securityClassification>
+        <securityClassification name="RED" lacv="13" hierarchy="4" color="red">
+            <equivalentClassification policyRef="TLP" lacv="13" applied="both"/>
+        </securityClassification>
+    </securityClassifications>
+    <securityCategoryTagSets>
+        <securityCategoryTagSet name="Jurisdiction" id="1.2.826.0.1.6726289.0.1.1">
+            <securityCategoryTag name='Jurisdiction' tagType="permissive">
+                <tagCategory name="EU" lacv="0"/>
+                <tagCategory name="SafeHarbour" lacv="1"/>
+                <tagCategory name="US" lacv="2"/>
+                <markingQualifier>
+                    <qualifier markingQualifier="," qualifierCode="separator"/>
+                    <qualifier markingQualifier="J:" qualifierCode="prefix"/>
+                </markingQualifier>
+            </securityCategoryTag>
+        </securityCategoryTagSet>
+        <securityCategoryTagSet name="Mandatory Data Handling" id="1.2.826.0.1.6726289.0.1.2">
+            <securityCategoryTag name='Handling' tagType="restrictive">
+                <tagCategory name="Anonymize" lacv="0"/>
+                <tagCategory name="Aggregate" lacv="1"/>
+                <markingQualifier>
+                    <qualifier markingQualifier="," qualifierCode="separator"/>
+                    <qualifier markingQualifier="MUST:" qualifierCode="prefix"/>
+                </markingQualifier>
+            </securityCategoryTag>
+            <securityCategoryTag name="Encryption" tagType="restrictive">
+                <tagCategory name="Storage" lacv="2"/>
+                <tagCategory name="Transit" lacv="3"/>
+                <markingQualifier>
+                    <qualifier markingQualifier="," qualifierCode="separator"/>
+                    <qualifier markingQualifier="ENCRYPT:" qualifierCode="prefix"/>
+                </markingQualifier>
+            </securityCategoryTag>
+        </securityCategoryTagSet>
+        <securityCategoryTagSet name="Data Status" id="1.2.826.0.1.6726289.0.1.3">
+            <securityCategoryTag name='Actions' tagType="tagType7" tag7Encoding="bitSetAttributes" singleSelection="true">
+                <tagCategory name="Do not action" lacv="0"/>
+                <markingQualifier>
+                    <qualifier markingQualifier="," qualifierCode="separator"/>
+                </markingQualifier>
+            </securityCategoryTag>
+        </securityCategoryTagSet>
+    </securityCategoryTagSets>
+    <markingQualifier>
+        <qualifier markingQualifier="TLP:" qualifierCode="prefix"/>
+    </markingQualifier>
+</SPIF>
