@@ -23,33 +23,15 @@ SOFTWARE.
 
 ***/
 
-#ifndef SPIFFING_CATREF_H
-#define SPIFFING_CATREF_H
-
 #include <spiffing/constants.h>
-#include <spiffing/category.h>
-#include <memory>
 
-namespace Spiffing {
-  class CategoryRef {
-  public:
-    CategoryRef(std::shared_ptr<Category> const & cat) : m_cat(cat) {}
-    CategoryRef(CategoryRef const & other) : m_cat(other.m_cat) {}
-    CategoryRef(CategoryRef && other) : m_cat(std::move(other.m_cat)) {}
-    Category & operator * () { return *m_cat; }
-    Category const & operator * () const { return *m_cat; }
-    Category * operator -> () { return &*m_cat; }
-    Category const * operator -> () const { return &*m_cat; }
-    bool operator <(CategoryRef const & other) const {
-      return *m_cat < *other;
-    }
-    std::shared_ptr<Category> const & ptr() const {
-      return m_cat;
-    }
+std::string const Spiffing::OID::NATO = "2.16.840.1.101.2.1.8.3";
+std::string const Spiffing::OID::MISSI{"2.16.840.1.101.2.1.8.1"};
+std::string const Spiffing::OID::SSLPrivilege{"2.16.840.1.101.2.1.8.2"};
 
-  private:
-    std::shared_ptr<Category> m_cat;
-  };
-}
-
-#endif
+// ACP-145(A) types
+std::string const Spiffing::OID::NATO_RestrictiveBitmap{"2.16.840.1.101.2.1.8.3.0"};
+std::string const Spiffing::OID::NATO_PermissiveBitmap{"2.16.840.1.101.2.1.8.3.2"};
+std::string const Spiffing::OID::NATO_EnumeratedPermissive{"2.16.840.1.101.2.1.8.3.1"};
+std::string const Spiffing::OID::NATO_EnumeratedRestrictive{"2.16.840.1.101.2.1.8.3.4"};
+std::string const Spiffing::OID::NATO_Informative{"2.16.840.1.101.2.1.8.3.3"};

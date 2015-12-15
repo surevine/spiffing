@@ -42,7 +42,7 @@ tests: test spifflicator transpifferizer
 	@echo "Coverage test"
 	@$(MAKE) coverage
 	@echo "CLang test"
-	@../llvm/tools/clang/tools/scan-build/scan-build -o report/clang --use-analyzer=../llvm-build/Debug+Asserts/bin/clang make SPIFFINGBUILD=tmp-analyzer tmp-analyzer/libspiffing.a
+	@../llvm/tools/clang/tools/scan-build/scan-build -o report/clang --use-analyzer=../llvm-build/bin/clang make SPIFFINGBUILD=tmp-analyzer tmp-analyzer/libspiffing.a
 	@rm -rf tmp-analyzer
 
 quick-tests: test transpifferizer
@@ -56,7 +56,7 @@ coverage: quick-tests
 	@genhtml --output-directory report/lcov/ build/spiffing.info
 
 
-GENBERSOURCE=$(wildcard gen-ber/*.c) gen-ber/ESSSecurityLabel.c
+GENBERSOURCE=$(wildcard gen-ber/*.c) gen-ber/.marker
 GENBEROBJS=$(GENBERSOURCE:.c=.o)
 SPIFFINGSOURCE=$(wildcard src/*.cc)
 SPIFFINGOBJS=$(SPIFFINGSOURCE:src/%.cc=$(SPIFFINGBUILD)/spiffing/%.o)
@@ -64,18 +64,22 @@ SPIFFINGOBJS=$(SPIFFINGSOURCE:src/%.cc=$(SPIFFINGBUILD)/spiffing/%.o)
 DEBUG?=-g --coverage #-fprofile-dir=./build/ #-fprofile-generate=./build/ #-DEMIT_ASN_DEBUG=1
 CXXFLAGS=-std=c++11
 
-gen-ber/%.c gen-ber/%.h: ESSSecurityLabel.asn Clearance.asn acp145.asn SSLPrivileges.asn MissiSecurityCategories.asn
+gen-ber/.marker: ESSSecurityLabel.asn Clearance.asn acp145.asn SSLPrivileges.asn MissiSecurityCategories.asn
 	@mkdir -p $(dir $@)
+	@touch gen-ber/.marker
 	(cd $(dir $@) && $(ASN1C) -fwide-types $(^:%=../%))
 	@mv gen-ber/converter-sample.c .
 	@echo $(GENBEROBJS) $(GENBERSOURCE)
 
-converter-sample.c: gen-ber/ESSSecurityLabel.c
+gen-ber/%.c gen-ber/%.h: gen-ber/.marker
+	@echo "ASN.1 Parsing"
 
-.PRECIOUS: converter-sample.c gen-ber/%.c gen-ber/%.h
+converter-sample.c: gen-ber/.marker
+
+.PRECIOUS: converter-sample.c gen-ber/%.c gen-ber/%.h gen-ber/.marker
 
 ifeq (0,$(MAKELEVEL))
-build/libspiffing-asn.a: $(GENBEROBJS)
+build/libspiffing-asn.a: $(GENBEROBJS) gen-ber/.marker
 	@$(MAKE) submake
 else
 build/libspiffing-asn.a: $(GENBEROBJS)
@@ -92,8 +96,8 @@ submake: build/libspiffing-asn.a
 	@echo Done
 
 gen-ber/%.o: gen-ber/%.c
-	@echo [CC] $@
-	@$(CC) $(DEBUG) -c -o $@ -Igen-ber/ $^
+	@echo [CC PIC] $@
+	@$(CC) -fPIC $(DEBUG) -c -o $@ -Igen-ber/ $^
 
 clean:
 	@echo [CLEAN]
@@ -117,9 +121,9 @@ clearance-parser: build/clearance-parser.o build/libspiffing-asn.a
 	@$(CC) $(DEBUG) -o $@ -Lbuild/ $< -lspiffing-asn
 
 $(SPIFFINGBUILD)/spiffing/%.o: src/%.cc gen-ber/ANY.h
-	@echo [C++] $@
+	@echo [C++ PIC] $@
 	@mkdir -p $(dir $@)
-	@$(CXX) $(DEBUG) $(CXXFLAGS) -Iinclude/ -Igen-ber/ -Ideps/rapidxml/ -o $@ -MD -MF $(@:%.o=%.d) -c $<
+	@$(CXX) -fPIC $(DEBUG) $(CXXFLAGS) -Iinclude/ -Igen-ber/ -Ideps/rapidxml/ -o $@ -MD -MF $(@:%.o=%.d) -c $<
 
 $(SPIFFINGBUILD)/%.o: %.cc
 	@echo [C++] $@

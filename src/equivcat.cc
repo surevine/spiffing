@@ -23,33 +23,27 @@ SOFTWARE.
 
 ***/
 
-#ifndef SPIFFING_CATREF_H
-#define SPIFFING_CATREF_H
+#include <spiffing/equivcat.h>
+#include <spiffing/label.h>
+#include <spiffing/spif.h>
+#include <spiffing/tagset.h>
 
-#include <spiffing/constants.h>
-#include <spiffing/category.h>
-#include <memory>
+using namespace Spiffing;
 
-namespace Spiffing {
-  class CategoryRef {
-  public:
-    CategoryRef(std::shared_ptr<Category> const & cat) : m_cat(cat) {}
-    CategoryRef(CategoryRef const & other) : m_cat(other.m_cat) {}
-    CategoryRef(CategoryRef && other) : m_cat(std::move(other.m_cat)) {}
-    Category & operator * () { return *m_cat; }
-    Category const & operator * () const { return *m_cat; }
-    Category * operator -> () { return &*m_cat; }
-    Category const * operator -> () const { return &*m_cat; }
-    bool operator <(CategoryRef const & other) const {
-      return *m_cat < *other;
-    }
-    std::shared_ptr<Category> const & ptr() const {
-      return m_cat;
-    }
-
-  private:
-    std::shared_ptr<Category> m_cat;
-  };
+EquivCat::EquivCat(std::string const & policy_id, std::string const & tagSetId, TagType tagType, Lacv lacv)
+    : m_discard(false), m_policy_id(policy_id), m_tagSetId(tagSetId), m_tagType(tagType), m_lacv(lacv) {
 }
 
-#endif
+EquivCat::EquivCat(std::string const & policy_id)
+    : m_discard(true), m_policy_id(policy_id), m_tagType(TagType::informative) {
+}
+
+void EquivCat::apply(Label & label) const {
+    if (m_discard) return;
+    if (!m_cat) const_cast<EquivCat*>(this)->compile(label.policy());
+    label.addCategory(m_cat);
+}
+
+void EquivCat::compile(Spif const & policy) {
+    m_cat = policy.tagSetLookup(m_tagSetId)->categoryLookup(m_tagType, m_lacv);
+}

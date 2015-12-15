@@ -32,11 +32,59 @@ SOFTWARE.
 
 using namespace Spiffing;
 
-template<typename T> void transpifferize(std::string const & ifn, const char * of) {
+struct Opts {
+    Opts(int argc, char *argv[])
+            : clearance(false), encrypt(false), input(nullptr), output(nullptr)
+    {
+      for (int i = 1; i < argc; ++i) {
+        if (argv[i][0] == '-') {
+          switch (argv[i][1]) {
+            case 'p': {
+              ++i;
+              std::ifstream spif_file(argv[i]);
+              auto spif = Site::site().load(spif_file);
+              std::cout << "Loaded SPIF " << spif->name() << std::endl;
+            }
+                  break;
+            case 'c':
+              clearance = true;
+                  break;
+            case 'e': {
+              encrypt = true;
+              ++i;
+              policy_out = argv[i];
+              auto spif = Site::site().spif(policy_out);
+              std::cout << "Output policy name: " << spif->name() << std::endl;
+              std::cout << "Mode ENCRYPT" << std::endl;
+            }
+                  break;
+          }
+        } else {
+          if (input == nullptr) {
+            input = argv[i];
+          } else {
+            output = argv[i];
+          }
+        }
+      }
+    }
+
+    bool clearance;
+    bool encrypt;
+    std::string policy_out;
+      const char * input;
+      const char * output;
+};
+
+template<typename T> std::unique_ptr<T> load(std::string const & ifn) {
   std::ifstream label_file(ifn);
   std::string label_str{std::istreambuf_iterator<char>(label_file), std::istreambuf_iterator<char>()};
-  T label(label_str, Format::ANY);
-  std::cout << "Marking is '" << label.policy().displayMarking(label) << "'" << std::endl;
+  std::unique_ptr<T> label(new T(label_str, Format::ANY));
+  std::cout << "Marking is '" << label->policy().displayMarking(*label) << "'" << std::endl;
+  return label;
+}
+
+template<typename T> void write(T const & label, const char * of) {
   if (!of) return;
   std::string filename{of};
   std::ofstream output_file(filename);
@@ -62,26 +110,35 @@ template<typename T> void transpifferize(std::string const & ifn, const char * o
   output_file << output;
 }
 
+std::unique_ptr<Label> translate(Opts const & opt, std::unique_ptr<Label> const & label) {
+  std::unique_ptr<Label> newl = label->encrypt(opt.policy_out);
+  std::cout << "Translated label has marking '" << newl->policy().displayMarking(*newl) << "'" << std::endl;
+  return newl;
+}
+
 int main(int argc, char *argv[]) {
   try {
     if (argc <= 1) {
-      std::cout << "transpifferizer spif.xml sioobj.ext [output.ext]" << std::endl;
+      std::cout << "transpifferizer -p spif.xml [-e policyid] [-c] sioobj.ext  [output.ext]" << std::endl;
       std::cout << "    ext can be 'xml', 'ber'." << std::endl;
-      std::cout << "    sioobj can be label (tried first), or clearance." << std::endl;
+      std::cout << "    sioobj can be label or clearance [with -c]." << std::endl;
+      std::cout << "    only labels can be translated [with -e]." << std::endl;
       return 0;
     }
-    std::ifstream spif_file(argv[1]);
-    Site site;
-    auto spif = site.load(spif_file);
-    std::cout << "Loaded SPIF " << spif->policy_id() << std::endl;
     if (argc <= 2) return 0;
-    try {
-      transpifferize<Label>(argv[2], argv[3]);
-      return 0;
-    } catch (std::runtime_error &e) {
-      std::cerr << "Obviously not a label: " << e.what() << std::endl;
+    Site site;
+    Opts opts{argc, argv};
+
+    if (opts.clearance) {
+      std::unique_ptr<Clearance> clearance = std::move(load<Clearance>(opts.input));
+      write(*clearance, opts.output);
+    } else {
+      std::unique_ptr<Label> label{load<Label>(opts.input)};
+      if (opts.encrypt) {
+        label = translate(opts, label);
+      }
+      write(*label, opts.output);
     }
-    transpifferize<Clearance>(argv[2], argv[3]);
   } catch(std::exception & e) {
     std::cerr << "Dude, exception: " << e.what() << std::endl;
     return 1;

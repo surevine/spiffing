@@ -80,21 +80,23 @@ namespace Spiffing {
 	class Marking;
 	class CategoryData;
 	class CategoryGroup;
+	class EquivClassification;
+	class EquivCat;
 
     // OID constants
-    namespace OID {
+    struct OID {
         // RBAC / Privilege identifiers
-        std::string const NATO{"2.16.840.1.101.2.1.8.3"}; // ACP-145(A)
-        std::string const MISSI{"2.16.840.1.101.2.1.8.1"};
-        std::string const SSLPrivilege{"2.16.840.1.101.2.1.8.2"};
+        static std::string const NATO; // ACP-145(A)
+		static std::string const MISSI;
+		static std::string const SSLPrivilege;
 
         // ACP-145(A) types
-        std::string const NATO_RestrictiveBitmap{"2.16.840.1.101.2.1.8.3.0"};
-        std::string const NATO_PermissiveBitmap{"2.16.840.1.101.2.1.8.3.2"};
-        std::string const NATO_EnumeratedPermissive{"2.16.840.1.101.2.1.8.3.1"};
-        std::string const NATO_EnumeratedRestrictive{"2.16.840.1.101.2.1.8.3.4"};
-        std::string const NATO_Informative{"2.16.840.1.101.2.1.8.3.3"};
-    }
+		static std::string const NATO_RestrictiveBitmap;
+		static std::string const NATO_PermissiveBitmap;
+		static std::string const NATO_EnumeratedPermissive;
+		static std::string const NATO_EnumeratedRestrictive;
+		static std::string const NATO_Informative;
+    };
 }
 
 #endif

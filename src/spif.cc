@@ -36,6 +36,8 @@ SOFTWARE.
 #include <spiffing/marking.h>
 #include <spiffing/categorydata.h>
 #include <spiffing/categorygroup.h>
+#include <spiffing/equivclass.h>
+#include <spiffing/equivcat.h>
 
 using namespace Spiffing;
 
@@ -167,6 +169,7 @@ namespace {
 	// For requiredCategory
 	std::unique_ptr<CategoryGroup> parseCategoryGroup(rapidxml::xml_node<> * node) {
 		auto op_a = node->first_attribute("operation");
+		if (!op_a || !op_a->value()) throw std::runtime_error("Missing operation attribute from CategoryGroup");
 		std::string opname{op_a->value(), op_a->value_size()};
 		OperationType opType{OperationType::onlyOne};
 		if (opname == "onlyOne") {
@@ -194,7 +197,7 @@ namespace {
 		}
 	}
 
-	std::shared_ptr<Classification> parseClassification(rapidxml::xml_node<> * classification) {
+	std::shared_ptr<Classification> parseClassification(rapidxml::xml_node<> * classification, std::map<std::string,std::string> const & equivPolicies) {
 		auto lacv_a = classification->first_attribute("lacv");
 		lacv_t lacv{strtoull(lacv_a->value(), NULL, 10)};
 		auto name_a = classification->first_attribute("name");
@@ -205,11 +208,57 @@ namespace {
 		for (auto reqCat = classification->first_node("requiredCategory"); reqCat; reqCat = reqCat->next_sibling("requiredCategory")) {
 			cls->addRequiredCategory(parseCategoryGroup(reqCat));
 		}
+		for (auto equivClass = classification->first_node("equivalentClassification"); equivClass; equivClass = equivClass->next_sibling("equivalentClassification")) {
+			auto equivName = equivClass->first_attribute("policyRef");
+			if (!equivName || !equivName->value()) throw std::runtime_error("Equivalent Classification requires policyRef");
+			auto i = equivPolicies.find(equivName->value());
+			if (i == equivPolicies.end()) throw std::runtime_error("PolicyRef not found");
+			auto llacv_a = equivClass->first_attribute("lacv");
+			lacv_t llacv{strtoull(llacv_a->value(), NULL, 10)};
+			auto when_a = equivClass->first_attribute("applied");
+			if (!when_a || !when_a->value()) throw std::runtime_error("Missing applied in equivClass");
+			std::string when{when_a->value()};
+			std::shared_ptr<EquivClassification> equiv{new EquivClassification((*i).second, llacv)};
+			for (auto reqCat = equivClass->first_node("requiredCategory"); reqCat; reqCat = reqCat->next_sibling("requiredCategory")) {
+				equiv->addRequiredCategory(parseCategoryGroup(reqCat));
+			}
+			if (when == "encrypt" || when == "both") {
+				cls->equivEncrypt(equiv);
+			}
+			if (when == "decrypt" || when == "both") {
+				cls->equivDecrypt(equiv);
+			}
+		}
 		cls->marking(parseMarking(classification));
+		auto color_a = classification->first_attribute("color");
+		if (color_a && color_a->value()) {
+			cls->fgcolour(color_a->value());
+		}
 		return cls;
 	}
 
-	std::shared_ptr<TagSet> parseTagSet(rapidxml::xml_node<> * tagSet, size_t & ordinal, std::map<std::string,std::shared_ptr<Classification>> const & classNames) {
+	std::shared_ptr<EquivCat> parseEquivCat(rapidxml::xml_node<> * equiv, std::map<std::string,std::string> const & policies) {
+		auto policyref_a = equiv->first_attribute("policyRef");
+		if (!policyref_a || !policyref_a->value()) throw std::runtime_error("Missing PolicyRef");
+		auto i = policies.find(policyref_a->value());
+		if (i == policies.end()) throw std::runtime_error("PolicyRef not found");
+		std::string policy_id = (*i).second;
+		auto tagsetid_a = equiv->first_attribute("tagSetId");
+		if (!tagsetid_a || !tagsetid_a->value()) throw std::runtime_error("Missing tagSetId");
+		TagType tagType = parseTagType(equiv);
+		Lacv lacv = parseLacv(equiv->first_attribute("lacv"));
+		bool discard = (equiv->first_attribute("action") != nullptr);
+		if (discard) {
+			return std::shared_ptr<EquivCat>(new EquivCat(policy_id));
+		} else {
+			return std::shared_ptr<EquivCat>(new EquivCat(policy_id, tagsetid_a->value(), tagType, lacv));
+		}
+	}
+
+	std::shared_ptr<TagSet> parseTagSet(rapidxml::xml_node<> * tagSet,
+										size_t & ordinal,
+										std::map<std::string, std::shared_ptr<Classification>> const & classNames,
+										std::map<std::string,std::string> const & policies) {
 		auto id_a = tagSet->first_attribute("id");
 		auto name_a = tagSet->first_attribute("name");
 		std::shared_ptr<TagSet> ts{new TagSet(id_a->value(), name_a->value())};
@@ -244,6 +293,10 @@ namespace {
 				for (auto excnode = cat->first_node("excludedCategory"); excnode; excnode = excnode->next_sibling("excludedCategory")) {
 					std::unique_ptr<CategoryData> exc = parseOptionalCategoryData(excnode);
 					c->excluded(std::move(exc));
+				}
+				for (auto equiv = cat->first_node("equivalentSecCategoryTag"); equiv; equiv = equiv->next_sibling("equivalentSecCategoryTag")) {
+					std::shared_ptr<EquivCat> ec = parseEquivCat(equiv, policies);
+					c->encryptEquiv(ec);
 				}
 				c->marking(parseMarking(cat));
 			}
@@ -290,10 +343,27 @@ void Spif::parse(std::string const & s, Format fmt) {
 			m_oid = id->value();
 		}
 	}
+	auto equivPolicies = node->first_node("equivalentPolicies");
+	if (equivPolicies) {
+		for (auto equivPolicy = equivPolicies->first_node(
+				"equivalentPolicy"); equivPolicy; equivPolicy = equivPolicy->next_sibling("equivalentPolicy")) {
+			auto name_a = equivPolicy->first_attribute("name");
+			if (!name_a || !name_a->value()) throw std::runtime_error("Equivalent policy requires name");
+			std::string name{name_a->value()};
+			auto id_a = equivPolicy->first_attribute("id");
+			if (!id_a || !id_a->value()) throw std::runtime_error("Equivalent policy requires id");
+			std::string id{id_a->value()};
+			m_equivPolicies.insert(std::make_pair(name, id));
+			for (auto reqCat = equivPolicy->first_node("requiredCategory"); reqCat; reqCat = reqCat->next_sibling(
+					"requiredCategory")) {
+				m_equivReqs.insert(std::make_pair(id, parseCategoryGroup(reqCat)));
+			}
+		}
+	}
 	auto securityClassifications = node->first_node("securityClassifications");
 	std::map<std::string, std::shared_ptr<Classification>> classNames;
 	for (auto classn = securityClassifications->first_node("securityClassification"); classn; classn = classn->next_sibling("securityClassification")) {
-		std::shared_ptr<Classification> c = parseClassification(classn);
+		std::shared_ptr<Classification> c = parseClassification(classn, m_equivPolicies);
 		auto ins = m_classifications.insert(std::make_pair(c->lacv(), c));
 		if (!ins.second) {
 			throw std::runtime_error("Duplicate classification " + c->name());
@@ -307,7 +377,7 @@ void Spif::parse(std::string const & s, Format fmt) {
 	if (securityCategoryTagSets) {
 		size_t ordinal = 0;
 		for (auto tagSet = securityCategoryTagSets->first_node("securityCategoryTagSet"); tagSet; tagSet = tagSet->next_sibling("securityCategoryTagSet")) {
-			std::shared_ptr<TagSet> ts = parseTagSet(tagSet, ordinal, classNames);
+			std::shared_ptr<TagSet> ts = parseTagSet(tagSet, ordinal, classNames, m_equivPolicies);
 			m_tagSets.insert(std::make_pair(ts->id(), ts));
 			m_tagSetsByName.insert(std::make_pair(ts->name(), ts));
 		}
@@ -326,6 +396,7 @@ namespace {
 	void categoryMarkings(MarkingCode loc, std::string & marking, std::set<CategoryRef> const & cats, std::string const & sep) {
 		std::string tagName;
 		std::string tagsep;
+		std::string tagSuffix;
 		for (auto & i : cats) {
 			std::string phrase;
 			if (i->hasMarking()) {
@@ -340,12 +411,15 @@ namespace {
 			if (tagName != currentTagName) {
 				// Entering new tag.
 				tagName = currentTagName;
+				marking += tagSuffix;
 				if (!marking.empty()) marking += sep;
 				if (i->tag().hasMarking()) {
+					tagSuffix = i->tag().marking().suffix();
 					tagsep = i->tag().marking().sep();
 					if (tagsep.empty()) tagsep = "/"; // Default;
 					marking += i->tag().marking().prefix();
 				} else {
+					tagSuffix = "";
 					tagsep = "/";
 				}
 			} else {
@@ -353,6 +427,7 @@ namespace {
 			}
 			marking += phrase;
 		}
+		marking += tagSuffix;
 	}
 }
 
@@ -478,4 +553,11 @@ bool Spif::valid(Label const & label) const {
 		if (!cat->valid(label)) return false;
 	}
 	return true;
+}
+
+void Spif::encrypt(Label & label) const {
+	auto end = m_equivReqs.upper_bound(label.policy_id());
+	for (auto i = m_equivReqs.lower_bound(label.policy_id()); i != end; ++i) {
+		(*i).second->fixup(label);
+	}
 }

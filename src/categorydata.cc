@@ -58,3 +58,12 @@ void CategoryData::compile(Spif const & spif) {
     m_cats.insert(tagSet->categoryLookup(m_tagType, m_lacv));
   }
 }
+
+void CategoryData::fixup(Label & l) const {
+  if (m_cats.empty()) {
+    const_cast<CategoryData *>(this)->compile(l.policy());
+  }
+  for (auto & cat : m_cats) {
+    l.addCategory(cat.ptr());
+  }
+}

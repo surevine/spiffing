@@ -36,7 +36,7 @@ namespace Spiffing {
 	public:
 		Clearance(std::string const & label, Format fmt);
 		void parse(std::string const & label, Format fmt);
-		void write(Format fmt, std::string &);
+		void write(Format fmt, std::string &) const;
 
 		bool hasClassification(lacv_t lacv) const;
 		std::set<lacv_t> const & classifications() const {
@@ -58,8 +58,8 @@ namespace Spiffing {
 		void parse_xml(std::string const &);
 		void parse_ber(std::string const &);
 		void parse_any(std::string const &);
-		void write_xml(std::string &);
-		void write_ber(std::string &);
+		void write_xml(std::string &) const;
+		void write_ber(std::string &) const;
 
 		std::shared_ptr<Spif> m_policy;
 		std::string m_policy_id;

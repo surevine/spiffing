@@ -59,3 +59,9 @@ void CategoryGroup::compile(Spif const & spif) {
     cd->compile(spif);
   }
 }
+
+void CategoryGroup::fixup(Label &l) const {
+  for (auto & cd : m_categoryData) {
+    cd->fixup(l);
+  }
+}

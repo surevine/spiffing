@@ -28,16 +28,16 @@ SOFTWARE.
 
 #include <spiffing/constants.h>
 #include <spiffing/marking.h>
+#include <spiffing/equivclass.h>
 #include <string>
 #include <set>
+#include <map>
 #include <memory>
 
 namespace Spiffing {
 	class Classification {
 	public:
 		Classification(lacv_t lacv, std::string const & name, unsigned long hierarchy, bool obsolete=false);
-		void colour(std::string const &);
-		std::string const & color() const;
 		bool operator < (Classification const &) const;
 
 		lacv_t lacv() const {
@@ -46,7 +46,7 @@ namespace Spiffing {
 		std::string const & name() const {
 			return m_name;
 		}
-		void addRequiredCategory(std::unique_ptr<CategoryGroup> reqCats);
+		void addRequiredCategory(std::unique_ptr<CategoryGroup> && reqCats);
 		void compile(Spif const &);
 		bool valid(Label const &) const;
 
@@ -59,13 +59,28 @@ namespace Spiffing {
 		Marking const & marking(std::unique_ptr<Marking> && m) {
 			m_marking = std::move(m);
 		}
+		std::string const & fgcolour() const {
+			return m_fgcolour;
+		}
+		std::string const & fgcolour(std::string const & c) {
+			m_fgcolour = c;
+			return m_fgcolour;
+		}
+
+		void equivEncrypt(std::shared_ptr<EquivClassification> const & equiv);
+		void equivDecrypt(std::shared_ptr<EquivClassification> const & equiv);
+		std::unique_ptr<Label> encrypt(Label const &, std::string const &) const;
+		std::unique_ptr<Label> decrypt(Label const &) const;
 	private:
 		lacv_t m_lacv;
 		std::string const m_name;
+		std::string m_fgcolour;
 		unsigned long m_hierarchy;
 		bool m_obsolete;
 		std::set<std::unique_ptr<CategoryGroup>> m_reqCats;
 		std::unique_ptr<Marking> m_marking;
+		std::map<std::string, std::shared_ptr<EquivClassification>> m_equivEncrypt;
+		std::map<std::string, std::shared_ptr<EquivClassification>> m_equivDecrypt;
 	};
 
 }

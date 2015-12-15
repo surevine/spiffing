@@ -25,8 +25,8 @@ SOFTWARE.
 
 #include <spiffing/classification.h>
 #include <spiffing/categorygroup.h>
-#include <spiffing/categorydata.h>
-#include <spiffing/marking.h>
+#include <spiffing/equivclass.h>
+#include <spiffing/label.h>
 
 using namespace Spiffing;
 
@@ -38,7 +38,7 @@ bool Classification::operator < (Classification const & c) const {
 	return m_hierarchy < c.m_hierarchy;
 }
 
-void Classification::addRequiredCategory(std::unique_ptr<CategoryGroup> reqCats) {
+void Classification::addRequiredCategory(std::unique_ptr<CategoryGroup> && reqCats) {
 	m_reqCats.insert(std::move(reqCats));
 }
 
@@ -53,4 +53,17 @@ bool Classification::valid(Label const & label) const {
 		if (!req->matches(label)) return false;
 	}
 	return true;
+}
+
+void Classification::equivEncrypt(std::shared_ptr<EquivClassification> const & equiv) {
+	m_equivEncrypt.insert(std::make_pair(equiv->policy_id(), equiv));
+}
+void Classification::equivDecrypt(std::shared_ptr<EquivClassification> const & equiv) {
+	m_equivDecrypt.insert(std::make_pair(equiv->policy_id(), equiv));
+}
+std::unique_ptr<Label> Classification::encrypt(Label const & old, std::string const & policy_id) const {
+	auto i = m_equivEncrypt.find(policy_id);
+	if (i == m_equivEncrypt.end()) throw std::runtime_error("No equivalent classification");
+	auto equiv = (*i).second;
+	return equiv->create();
 }
