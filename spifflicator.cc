@@ -38,22 +38,56 @@ int main(int argc, char *argv[]) {
 			return 0;
 		}
 		std::ifstream spif_file(argv[1]);
+
+		/*
+		 * You need a Spiffing::Site for the duration of your Spiffing usage.
+		 *
+		 * This owns the Spifs (policies).
+		 */
 		Site site;
+
+		/*
+		 * Spifs are loaded in from an iostream, in this case a file.
+		 * The return value is actually a std::shared_ptr<Spiffing::Spif>
+		 */
 		auto spif = site.load(spif_file);
 		std::cout << "Loaded SPIF " << spif->policy_id() << std::endl;
 		if (argc <= 2) return 0;
 		std::ifstream label_file(argv[2]);
 		std::string label_str{std::istreambuf_iterator<char>(label_file), std::istreambuf_iterator<char>()};
+
+		/*
+		 * A label is loaded in from a std::string. It will use the Site to locate the correct Spif.
+		 *
+		 * You can fix the format for a small improvement in speed.
+		 */
 		Label label(label_str, Format::ANY);
+
+		/*
+		 * Most of the driving functions are nominally within the Spif, such as
+		 * the displayMarking here:
+		 */
 		std::cout << "Label marking is '" << spif->displayMarking(label) << "'" << std::endl;
+		/*
+		 * But you can access the Spif via the Label easily, shown here with valid():
+		 */
 		if (!label.policy().valid(label)) std::cout << "Label is not valid!" << std::endl;
 		if (argc <= 3) return 0;
 		std::ifstream clearance_file(argv[3]);
 		std::string clearance_str{std::istreambuf_iterator<char>(clearance_file), std::istreambuf_iterator<char>()};
 		Clearance clearance(clearance_str, Format::ANY);
+		/*
+		 * Clearances also have a displayMarking of sorts, though it's not standardized.
+		 */
 		std::cout << "Clearance marking is '" << spif->displayMarking(clearance) << "'" << std::endl;
+		/*
+		 * The ACDF check must operate on labels and clearances from the same policy:
+		 */
 		std::cout << "ACDF decision is " << (spif->acdf(label, clearance) ? "PASS" : "FAIL") << std::endl;
 	} catch(std::exception & e) {
+		/*
+		 * Exceptions thrown are, currently, all std::runtime_errors.
+		 */
 		std::cerr << "Dude, exception: " << e.what() << std::endl;
 		return 1;
 	}
