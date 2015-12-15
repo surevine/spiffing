@@ -42,6 +42,10 @@ struct Opts {
             case 'p': {
               ++i;
               std::ifstream spif_file(argv[i]);
+              /*
+               * You can get at the Spiffing::Site object this way - handy for general access.
+               * Note that this will cause undefined behaviour if you don't have one.
+               */
               auto spif = Site::site().load(spif_file);
               std::cout << "Loaded SPIF " << spif->name() << std::endl;
             }
@@ -53,6 +57,10 @@ struct Opts {
               encrypt = true;
               ++i;
               policy_out = argv[i];
+              /*
+               * Accessing a policy directly is done via the Site object as well.
+               * Note that the encrypt target policy need to be loaded.
+               */
               auto spif = Site::site().spif(policy_out);
               std::cout << "Output policy name: " << spif->name() << std::endl;
               std::cout << "Mode ENCRYPT" << std::endl;
@@ -76,6 +84,10 @@ struct Opts {
       const char * output;
 };
 
+/*
+ * Load and display a Label or Clearance.
+ * They both support the same API, although are not related classes.
+ */
 template<typename T> std::unique_ptr<T> load(std::string const & ifn) {
   std::ifstream label_file(ifn);
   std::string label_str{std::istreambuf_iterator<char>(label_file), std::istreambuf_iterator<char>()};
@@ -84,6 +96,10 @@ template<typename T> std::unique_ptr<T> load(std::string const & ifn) {
   return label;
 }
 
+/*
+ * Writing both objects is also similar. Note that you cannot write as
+ * Format::ANY.
+ */
 template<typename T> void write(T const & label, const char * of) {
   if (!of) return;
   std::string filename{of};
@@ -110,6 +126,12 @@ template<typename T> void write(T const & label, const char * of) {
   output_file << output;
 }
 
+/*
+ * Translation is only supported in encrypt mode (ie, from the local policy to the remote.
+ * Both source and target policies MUST be loaded.
+ *
+ * The target policy is referenced by OID, here.
+ */
 std::unique_ptr<Label> translate(Opts const & opt, std::unique_ptr<Label> const & label) {
   std::unique_ptr<Label> newl = label->encrypt(opt.policy_out);
   std::cout << "Translated label has marking '" << newl->policy().displayMarking(*newl) << "'" << std::endl;
@@ -126,6 +148,9 @@ int main(int argc, char *argv[]) {
       return 0;
     }
     if (argc <= 2) return 0;
+    /*
+     * This object own the policies for its lifetime.
+     */
     Site site;
     Opts opts{argc, argv};
 

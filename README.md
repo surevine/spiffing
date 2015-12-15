@@ -1,7 +1,7 @@
 Spiffing
 ========
 
-The beginning of a rippingly good SPIF/Label/Clearance handling library.
+The beginning of a rippingly good fully policy-driven SPIF/Label/Clearance handling library.
 
 [![Build Status](https://travis-ci.org/surevine/spiffing.svg)](https://travis-ci.org/surevine/spiffing)
 
@@ -11,8 +11,13 @@ The beginning of a rippingly good SPIF/Label/Clearance handling library.
 
 It's absolutely Top Hole!
 
-Currently, this is experimental C++11 code, which will generate Display Markings for Labels (and Clearances), and
-perform an Access Control Decision. It handles ACP-145(A) and SDN.801c (MISSI) categories,
+Currently, this is experimental C++11 code, which will:
+* Generate Display Markings for Labels (and Clearances),
+* Perform an Access Control Decision.
+* Validate a label according to rules in the policy.
+* Translate a label from a local policy to an equivalent one.
+
+It handles ACP-145(A) and SDN.801c (MISSI) categories,
 BER/DER labels and clearances (X.841/ESS syntaxes), and the [Open XML SPIF](http://xmpspif.org/). There's
 also support for an XML format (primarily for testing).
 
@@ -97,3 +102,8 @@ and any bugs) in ./reports/
 `make quick-tests` just runs the tests themselves.
 
 The tests themselves are defined in test-data/tests.xml
+
+## Using
+
+The [spifflicator](/spifflicator.cc) and [transpifferizer](/transpifferizer.cc) source files are both well-commented
+with explanations of what they do. Exploring the [test](/test.cc) engine is also well worth considering.
