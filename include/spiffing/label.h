@@ -36,8 +36,9 @@ namespace Spiffing {
 	class Label {
 	public:
 		Label(std::string const & label, Format fmt);
+		Label(std::shared_ptr<Spif> const & policy, lacv_t cls);
 		void parse(std::string const & label, Format fmt);
-		void write(Format fmt, std::string & output);
+		void write(Format fmt, std::string & output) const;
 
 		Classification const & classification() const {
 			return *m_class;
@@ -54,13 +55,15 @@ namespace Spiffing {
 		}
 
 		void addCategory(std::shared_ptr<Category> const & cat);
+
+		std::unique_ptr<Label> encrypt(std::string policy_id) const;
 	private:
 		void parse_ber(std::string const & label);
 		void parse_xml(std::string const & label);
 		void parse_any(std::string const & label);
 
-		void write_ber(std::string &);
-		void write_xml(std::string &);
+		void write_ber(std::string &) const;
+		void write_xml(std::string &) const;
 
 		std::shared_ptr<Spif> m_policy;
 		std::string m_policy_id;

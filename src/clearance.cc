@@ -67,7 +67,7 @@ void Spiffing::Clearance::parse(std::string const & clearance, Spiffing::Format 
 	}
 }
 
-void Spiffing::Clearance::write(Spiffing::Format fmt, std::string & output) {
+void Spiffing::Clearance::write(Spiffing::Format fmt, std::string & output) const {
 	switch (fmt) {
 	case Spiffing::Format::BER:
 		write_ber(output);
@@ -199,7 +199,7 @@ void Spiffing::Clearance::parse_any(std::string const & clearance) {
 	parse_xml(clearance);
 }
 
-void Spiffing::Clearance::write_xml(std::string & output) {
+void Spiffing::Clearance::write_xml(std::string & output) const {
 	using namespace rapidxml;
 	// Do something sensible.
 	xml_document<> doc;
@@ -247,7 +247,7 @@ void Spiffing::Clearance::write_xml(std::string & output) {
 }
 
 
-void Spiffing::Clearance::write_ber(std::string & output) {
+void Spiffing::Clearance::write_ber(std::string & output) const {
 	Asn<Clearance_t> asn_clearance(&asn_DEF_Clearance);
 	asn_clearance.alloc();
 	Spiffing::Internal::str2oid(m_policy_id, &asn_clearance->policyId);

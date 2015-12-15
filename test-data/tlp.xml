@@ -1,0 +1,55 @@
+<SPIF xmlns="http://www.xmlspif.org/spif"
+      creationDate="2015-09-24 09:23:00"
+      rbacId="2.16.840.1.101.2.1.8.3"
+      privilegeId="2.16.840.1.101.2.1.8.3"
+      originatorDN="cn=Dave Cridland,o=Survine,c=GB"
+      schemaVersion="2.0"
+      keyIdentifier="">
+    <defaultSecurityPolicyId name="Default" id="1.1"/>
+    <securityPolicyId name="TLP" id="1.2.826.0.1.6726289.0.2"/>
+    <equivalentPolicies>
+        <equivalentPolicy name="TLPX" id="1.2.826.0.1.6726289.0.1"/>
+    </equivalentPolicies>
+    <securityClassifications>
+        <securityClassification name="WHITE" lacv="10" hierarchy="1" color="white">
+            <equivalentClassification policyRef="TLPX" lacv="10" applied="both"/>
+        </securityClassification>
+        <securityClassification name="GREEN" lacv="11" hierarchy="2" color="green">
+            <equivalentClassification policyRef="TLPX" lacv="11" applied="both"/>
+        </securityClassification>
+        <securityClassification name="AMBER" lacv="12" hierarchy="3" color="orange">
+            <equivalentClassification policyRef="TLPX" lacv="12" applied="both"/>
+        </securityClassification>
+        <securityClassification name="RED" lacv="13" hierarchy="4" color="red">
+            <equivalentClassification policyRef="TLPX" lacv="13" applied="both"/>
+        </securityClassification>
+    </securityClassifications>
+    <securityCategoryTagSets>
+        <securityCategoryTagSet name="Additional Information" id="1.2.826.0.1.6726289.0.2.1">
+            <securityCategoryTag name='Regions' tagType="permissive">
+                <tagCategory name="EU" lacv="0"/>
+                <tagCategory name="US" lacv="1"/>
+                <markingQualifier>
+                    <qualifier markingQualifier="/" qualifierCode="separator"/>
+                    <qualifier markingQualifier="[REGION=" qualifierCode="prefix"/>
+                    <qualifier markingQualifier="]" qualifierCode="suffix"/>
+                </markingQualifier>
+            </securityCategoryTag>
+            <securityCategoryTag name="Extra Warning" tagType="tagType7" tag7Encoding="bitSetAttributes">
+                <tagCategory name="Extra" lacv="0">
+                    <markingData phrase="[Additional Handling May Apply]">
+                        <code>pageTopBottom</code>
+                    </markingData>
+                </tagCategory>
+                <tagCategory name="Foreign" lacv="1">
+                    <markingData phrase="[Imported Data]">
+                        <code>pageTopBottom</code>
+                    </markingData>
+                </tagCategory>
+            </securityCategoryTag>
+        </securityCategoryTagSet>
+    </securityCategoryTagSets>
+    <markingQualifier>
+        <qualifier markingQualifier="TLP:" qualifierCode="prefix"/>
+    </markingQualifier>
+</SPIF>

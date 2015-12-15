@@ -27,6 +27,7 @@ SOFTWARE.
 #define SPIFFING_CATEGORYGROUP_H
 
 #include <spiffing/constants.h>
+#include <spiffing/categorydata.h>
 
 #include <set>
 #include <memory>
@@ -41,6 +42,7 @@ namespace Spiffing {
     void compile(Spif const & spif);
 
     void addCategoryData(std::unique_ptr<CategoryData> &&);
+    void fixup(Label & l) const;
   private:
     std::set<std::unique_ptr<CategoryData>> m_categoryData;
     OperationType m_opType;

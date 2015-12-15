@@ -26,9 +26,8 @@ SOFTWARE.
 #include <spiffing/category.h>
 #include <spiffing/classification.h>
 #include <spiffing/tag.h>
-#include <spiffing/categorydata.h>
-#include <spiffing/categorygroup.h>
 #include <spiffing/label.h>
+#include <spiffing/equivcat.h>
 
 using namespace Spiffing;
 
@@ -68,5 +67,18 @@ void Category::compile(Spif const & spif) {
   }
   for (auto & req : m_required) {
     req->compile(spif);
+  }
+}
+
+void Category::encryptEquiv(std::shared_ptr<EquivCat> const & equivCat) {
+  m_encryptEquivs.insert(std::make_pair(equivCat->policy_id(), equivCat));
+}
+
+void Category::encrypt(Label &label, std::string const &policy_id) const {
+  auto i = m_encryptEquivs.lower_bound(policy_id);
+  auto end = m_encryptEquivs.upper_bound(policy_id);
+  if (i == end) throw std::runtime_error("No equivalence to " + m_name);
+  for(; i != end; ++i) {
+    (*i).second->apply(label);
   }
 }

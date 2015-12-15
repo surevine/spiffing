@@ -41,6 +41,7 @@ namespace Spiffing {
 
     void compile(Spif const &);
     bool matches(Label const &) const;
+    void fixup(Label &) const;
   private:
     std::set<CategoryRef> m_cats;
     std::string m_tagSetRef;

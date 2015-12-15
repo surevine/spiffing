@@ -45,6 +45,10 @@ Label::Label(std::string const & label, Format fmt) : m_policy(), m_class(0) {
 	parse(label, fmt);
 }
 
+Label::Label(std::shared_ptr<Spif> const & policy, lacv_t cls) : m_policy(policy), m_policy_id(policy->policy_id()), m_class(0) {
+	m_class = m_policy->classificationLookup(cls);
+}
+
 void Label::parse(std::string const & label, Format fmt) {
 	if (label.empty()) {
 		throw std::runtime_error("No data to parse");
@@ -64,7 +68,7 @@ void Label::parse(std::string const & label, Format fmt) {
 	}
 }
 
-void Label::write(Format fmt, std::string & output) {
+void Label::write(Format fmt, std::string & output) const {
 	switch (fmt) {
 	case Format::BER:
 		write_ber(output);
@@ -188,7 +192,7 @@ void Label::parse_any(std::string const & label) {
 	parse_xml(label);
 }
 
-void Label::write_xml(std::string & output) {
+void Label::write_xml(std::string & output) const {
 	using namespace rapidxml;
 	// Do something sensible.
 	xml_document<> doc;
@@ -236,7 +240,7 @@ void Label::write_xml(std::string & output) {
 	rapidxml::print(std::back_inserter(output), doc, rapidxml::print_no_indenting);
 }
 
-void Label::write_ber(std::string & output) {
+void Label::write_ber(std::string & output) const {
 	Asn<ESSSecurityLabel_t> asn_label(&asn_DEF_ESSSecurityLabel);
 	asn_label.alloc();
 	asn_label->security_policy_identifier = Internal::str2oid(m_policy_id);
@@ -254,4 +258,13 @@ void Label::write_ber(std::string & output) {
 
 bool Label::hasCategory(CategoryRef const & r) const {
 	return m_cats.find(r) != m_cats.end();
+}
+
+std::unique_ptr<Label> Label::encrypt(std::string policy_id) const {
+	std::unique_ptr<Label> newl = m_class->encrypt(*this, policy_id);
+	for (auto & cat : m_cats) {
+		cat->encrypt(*newl, policy_id);
+	}
+	m_policy->encrypt(*newl);
+	return newl;
 }

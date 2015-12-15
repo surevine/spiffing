@@ -72,6 +72,7 @@ namespace Spiffing {
 			if (i == m_classifications.end()) throw std::runtime_error("Unknown classification");
 			return (*i).second;
 		}
+		void encrypt(Label &) const;
 
 	private:
 		std::string m_name;
@@ -81,7 +82,9 @@ namespace Spiffing {
 		std::map<lacv_t,std::shared_ptr<Classification>> m_classifications;
 		std::map<std::string /* OID */, std::shared_ptr<TagSet>> m_tagSets;
 		std::map<std::string /* Name */, std::shared_ptr<TagSet>> m_tagSetsByName;
+		std::map<std::string /* Name */, std::string /* OID */> m_equivPolicies;
 		std::unique_ptr<Marking> m_marking;
+		std::multimap<std::string /* OID */, std::unique_ptr<CategoryGroup>> m_equivReqs; /* Required Categories for equivalence */
 	};
 }
 

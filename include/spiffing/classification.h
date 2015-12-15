@@ -28,8 +28,10 @@ SOFTWARE.
 
 #include <spiffing/constants.h>
 #include <spiffing/marking.h>
+#include <spiffing/equivclass.h>
 #include <string>
 #include <set>
+#include <map>
 #include <memory>
 
 namespace Spiffing {
@@ -44,7 +46,7 @@ namespace Spiffing {
 		std::string const & name() const {
 			return m_name;
 		}
-		void addRequiredCategory(std::unique_ptr<CategoryGroup> reqCats);
+		void addRequiredCategory(std::unique_ptr<CategoryGroup> && reqCats);
 		void compile(Spif const &);
 		bool valid(Label const &) const;
 
@@ -64,6 +66,11 @@ namespace Spiffing {
 			m_fgcolour = c;
 			return m_fgcolour;
 		}
+
+		void equivEncrypt(std::shared_ptr<EquivClassification> const & equiv);
+		void equivDecrypt(std::shared_ptr<EquivClassification> const & equiv);
+		std::unique_ptr<Label> encrypt(Label const &, std::string const &) const;
+		std::unique_ptr<Label> decrypt(Label const &) const;
 	private:
 		lacv_t m_lacv;
 		std::string const m_name;
@@ -72,6 +79,8 @@ namespace Spiffing {
 		bool m_obsolete;
 		std::set<std::unique_ptr<CategoryGroup>> m_reqCats;
 		std::unique_ptr<Marking> m_marking;
+		std::map<std::string, std::shared_ptr<EquivClassification>> m_equivEncrypt;
+		std::map<std::string, std::shared_ptr<EquivClassification>> m_equivDecrypt;
 	};
 
 }

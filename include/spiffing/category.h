@@ -32,6 +32,7 @@ SOFTWARE.
 #include <string>
 #include <set>
 #include <memory>
+#include <map>
 
 namespace Spiffing {
     class Category {
@@ -55,6 +56,7 @@ namespace Spiffing {
         void excluded(Classification const & c);
         void excluded(std::unique_ptr<CategoryData> && cd);
         void required(std::unique_ptr<CategoryGroup> && cg);
+        void encryptEquiv(std::shared_ptr<EquivCat> const & equiv);
 
         bool hasMarking() const {
           return m_marking != nullptr;
@@ -65,6 +67,7 @@ namespace Spiffing {
         void marking(std::unique_ptr<Marking> && m) {
           m_marking = std::move(m);
         }
+        void encrypt(Label & label, std::string const & policy_id) const;
 
     private:
         Lacv m_lacv;
@@ -75,6 +78,7 @@ namespace Spiffing {
         std::set<std::unique_ptr<CategoryGroup>> m_required;
         std::set<std::unique_ptr<CategoryData>> m_excluded;
         std::unique_ptr<Marking> m_marking;
+        std::multimap<std::string, std::shared_ptr<EquivCat>> m_encryptEquivs;
     };
 }
 

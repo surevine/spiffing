@@ -23,33 +23,25 @@ SOFTWARE.
 
 ***/
 
-#ifndef SPIFFING_CATREF_H
-#define SPIFFING_CATREF_H
+#include <spiffing/spiffing.h>
+#include <spiffing/equivclass.h>
+#include <spiffing/label.h>
 
-#include <spiffing/constants.h>
-#include <spiffing/category.h>
-#include <memory>
+using namespace Spiffing;
 
-namespace Spiffing {
-  class CategoryRef {
-  public:
-    CategoryRef(std::shared_ptr<Category> const & cat) : m_cat(cat) {}
-    CategoryRef(CategoryRef const & other) : m_cat(other.m_cat) {}
-    CategoryRef(CategoryRef && other) : m_cat(std::move(other.m_cat)) {}
-    Category & operator * () { return *m_cat; }
-    Category const & operator * () const { return *m_cat; }
-    Category * operator -> () { return &*m_cat; }
-    Category const * operator -> () const { return &*m_cat; }
-    bool operator <(CategoryRef const & other) const {
-      return *m_cat < *other;
-    }
-    std::shared_ptr<Category> const & ptr() const {
-      return m_cat;
-    }
-
-  private:
-    std::shared_ptr<Category> m_cat;
-  };
+EquivClassification::EquivClassification(std::string const &policy_id, lacv_t lacv)
+    : m_class(lacv), m_policy_id(policy_id) {
 }
 
-#endif
+void EquivClassification::addRequiredCategory(std::unique_ptr<CategoryGroup> &&reqCat) {
+    m_reqs.insert(std::move(reqCat));
+}
+
+std::unique_ptr<Label> EquivClassification::create() const {
+    std::shared_ptr<Spif> spif = Site::site().spif(m_policy_id);
+    std::unique_ptr<Label> label{new Label(spif, m_class)};
+    for (auto & i : m_reqs) {
+        i->fixup(*label);
+    }
+    return label;
+}
