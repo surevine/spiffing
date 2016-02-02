@@ -58,6 +58,7 @@ namespace Spiffing {
 		}
 		Marking const & marking(std::unique_ptr<Marking> && m) {
 			m_marking = std::move(m);
+			return *m_marking;
 		}
 		std::string const & fgcolour() const {
 			return m_fgcolour;

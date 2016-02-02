@@ -30,8 +30,7 @@ SOFTWARE.
 namespace Spiffing {
 	enum class Format {
 		BER,		// X.841 syntax.
-		DER,		// Equal to BER.
-		XER,		// X.693 ; categories don't work here due to ANY DEFINED BY.
+		DER = BER,		// Equal to BER.
 		XML,		// Namespaced XML.
 		ANY			// Try to guess.
 	};

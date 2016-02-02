@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.3)
 project(spiffing)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -pedantic")
 
 file(GLOB ASN_SOURCE_FILES
         "gen-ber/*.c"
@@ -22,7 +22,7 @@ set(SOURCE_FILES
     src/marking.cc
     src/spif.cc
     src/tag.cc
-    src/tagset.cc include/spiffing/spiffing.h src/spiffing.cc src/equivclass.cc include/spiffing/equivclass.h src/equivcat.cc include/spiffing/equivcat.h src/constants.cc src/constants.h)
+    src/tagset.cc include/spiffing/spiffing.h src/spiffing.cc src/equivclass.cc include/spiffing/equivclass.h src/equivcat.cc include/spiffing/equivcat.h src/constants.cc include/spiffing//constants.h)
 include_directories(include)
 include_directories(deps/rapidxml)
 add_library(spiffing ${SOURCE_FILES})

@@ -42,7 +42,7 @@ SOFTWARE.
 using namespace Spiffing;
 
 Spif::Spif(std::string const & s, Format fmt)
-: m_classifications(), m_rbacId("") {
+: m_classifications() {
 	parse(s, fmt);
 }
 

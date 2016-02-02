@@ -87,7 +87,7 @@ void Spiffing::Clearance::parse_ber(std::string const & clearance) {
 		throw std::runtime_error("Failed to parse BER/DER encoded clearance");
 	}
 	if (asn_clearance->classList) {
-		for (size_t i{0}; i != asn_clearance->classList->size; ++i) {
+		for (size_t i{0}; i != (size_t)asn_clearance->classList->size; ++i) {
 			if (!asn_clearance->classList->buf[i]) continue;
 			for (int j{0}; j != 8; ++j) {
 				if (asn_clearance->classList->buf[i] & (1 << (7 - j))) {
@@ -99,7 +99,7 @@ void Spiffing::Clearance::parse_ber(std::string const & clearance) {
 	m_policy_id = Spiffing::Internal::oid2str(&asn_clearance->policyId);
 	m_policy = Site::site().spif(m_policy_id);
 	if (asn_clearance->securityCategories) {
-		for (size_t i{0}; i != asn_clearance->securityCategories->list.count; ++i) {
+		for (size_t i{0}; i != (size_t)asn_clearance->securityCategories->list.count; ++i) {
 			std::string tagType = Spiffing::Internal::oid2str(&asn_clearance->securityCategories->list.array[i]->type);
 			if (tagType == OID::NATO_EnumeratedPermissive) { // Enum permissive.
 				Spiffing::Internal::parse_enum_cat<Clearance>(TagType::enumeratedPermissive, *this, &asn_clearance->securityCategories->list.array[i]->value);

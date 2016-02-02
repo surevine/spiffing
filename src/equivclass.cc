@@ -30,7 +30,7 @@ SOFTWARE.
 using namespace Spiffing;
 
 EquivClassification::EquivClassification(std::string const &policy_id, lacv_t lacv)
-    : m_class(lacv), m_policy_id(policy_id) {
+    : m_policy_id(policy_id), m_class(lacv) {
 }
 
 void EquivClassification::addRequiredCategory(std::unique_ptr<CategoryGroup> &&reqCat) {

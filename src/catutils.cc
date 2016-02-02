@@ -98,9 +98,9 @@ namespace {
       atts.size = sz = 4;
       atts.array = (INTEGER_t **)calloc(sz * sizeof(INTEGER_t *), sz);
     }
-    if (sz <= atts.count) {
+    if (sz <= (size_t)atts.count) {
       std::size_t old_sz = sz;
-      while (sz <= atts.count) sz += 4;
+      while (sz <= (size_t)atts.count) sz += 4;
       atts.array = (INTEGER_t **)realloc(atts.array, sz * sizeof(INTEGER_t *));
       memset(atts.array + old_sz, 0, (sz - old_sz) * sizeof(INTEGER_t *));
       atts.size = sz;
@@ -433,10 +433,10 @@ void Internal::parse_missi_cat(Label & label, ANY * any) {
   if (missi->present != MissiSecurityCategories_PR_prbacSecurityCategories) {
     throw std::runtime_error("MISSI tag uses unsupported local RBAC policy");
   }
-  for (size_t i=0; i!=missi->choice.prbacSecurityCategories.list.count; ++i) {
+  for (size_t i=0; i != (size_t)missi->choice.prbacSecurityCategories.list.count; ++i) {
     NamedTagSet * asnTagSet = missi->choice.prbacSecurityCategories.list.array[i];
     std::string tagSetName = oid2str(&asnTagSet->tagSetName);
-    for (size_t tagn=0; tagn!=asnTagSet->securityTags.list.count; ++tagn) {
+    for (size_t tagn=0; tagn != (size_t)asnTagSet->securityTags.list.count; ++tagn) {
       SecurityTag * tag = asnTagSet->securityTags.list.array[tagn];
       bool restrictive = false;
       auto tagSet = label.policy().tagSetLookup(tagSetName);
@@ -446,7 +446,7 @@ void Internal::parse_missi_cat(Label & label, ANY * any) {
           if (tagSet->categories(TagType::enumeratedPermissive).empty()) {
             tagType = TagType::enumeratedRestrictive;
           }
-          for (size_t catn = 0; catn != tag->choice.enumeratedAttributes.attributeFlags.list.count; ++catn) {
+          for (size_t catn = 0; catn != (size_t)tag->choice.enumeratedAttributes.attributeFlags.list.count; ++catn) {
             auto n = tag->choice.enumeratedAttributes.attributeFlags.list.array[catn];
             Lacv catLacv{std::string((char *)n->buf, n->size)};
             auto cat = tagSet->categoryLookup(tagType, catLacv);
@@ -460,7 +460,7 @@ void Internal::parse_missi_cat(Label & label, ANY * any) {
           TagType tagType = (restrictive ? TagType::restrictive : TagType::permissive);
           BIT_STRING_t &bits = (restrictive ? tag->choice.restrictivebitMap.attributeFlags
                                             : tag->choice.permissivebitMap.attributeFlags);
-          for (size_t byte = 0; byte != bits.size; ++byte) {
+          for (size_t byte = 0; byte != (size_t)bits.size; ++byte) {
             for (int bit = 0; bit != 8; ++bit) {
               if (bits.buf[byte] & (1 << (7 - bit))) {
                 Lacv catLacv{(byte * 8) + bit};
@@ -477,7 +477,7 @@ void Internal::parse_missi_cat(Label & label, ANY * any) {
           TagType tagType = TagType::informative;
           if (asn_t7->present == TagType7Data_PR_bitSetAttributes) {
             BIT_STRING_t &bits = asn_t7->choice.bitSetAttributes;
-            for (size_t byte = 0; byte != bits.size; ++byte) {
+            for (size_t byte = 0; byte != (size_t)bits.size; ++byte) {
               for (int bit = 0; bit != 8; ++bit) {
                 if (bits.buf[byte] & (1 << (7 - bit))) {
                   Lacv catLacv{(byte * 8) + bit};
@@ -487,7 +487,7 @@ void Internal::parse_missi_cat(Label & label, ANY * any) {
               }
             }
           } else {
-            for (size_t catn = 0; catn != asn_t7->choice.securityAttributes.list.count; ++catn) {
+            for (size_t catn = 0; catn != (size_t)asn_t7->choice.securityAttributes.list.count; ++catn) {
               auto n = asn_t7->choice.securityAttributes.list.array[catn];
               Lacv catLacv{std::string((char *)n->buf, n->size)};
               auto cat = tagSet->categoryLookup(tagType, catLacv);
@@ -495,6 +495,9 @@ void Internal::parse_missi_cat(Label & label, ANY * any) {
             }
           }
         }
+            break;
+        case SecurityTag_PR_NOTHING:
+            ;
       }
     }
   }
@@ -509,10 +512,10 @@ void Internal::parse_sslp_cat(Clearance & clearance, ANY * any) {
   if (r != RC_OK) {
     throw std::runtime_error("Could not decode MISSI tag");
   }
-  for (size_t i=0; i!=sslp->list.count; ++i) {
+  for (size_t i=0; i != (size_t)sslp->list.count; ++i) {
     NamedTagSetPrivilege * asnTagSet = sslp->list.array[i];
     std::string tagSetName = oid2str(&asnTagSet->tagSetName);
-    for (size_t tagn=0; tagn!=asnTagSet->securityTagPrivileges.list.count; ++tagn) {
+    for (size_t tagn=0; tagn != (size_t)asnTagSet->securityTagPrivileges.list.count; ++tagn) {
       SecurityTagPrivilege * tag = asnTagSet->securityTagPrivileges.list.array[tagn];
       bool restrictive = false;
       auto tagSet = clearance.policy().tagSetLookup(tagSetName);
@@ -522,7 +525,7 @@ void Internal::parse_sslp_cat(Clearance & clearance, ANY * any) {
           if (tagSet->categories(TagType::enumeratedPermissive).empty()) {
             tagType = TagType::enumeratedRestrictive;
           }
-          for (size_t catn = 0; catn != tag->choice.enumeratedAttributes.list.count; ++catn) {
+          for (size_t catn = 0; catn != (size_t)tag->choice.enumeratedAttributes.list.count; ++catn) {
             auto n = tag->choice.enumeratedAttributes.list.array[catn];
             Lacv catLacv{std::string((char *)n->buf, n->size)};
             auto cat = tagSet->categoryLookup(tagType, catLacv);
@@ -536,7 +539,7 @@ void Internal::parse_sslp_cat(Clearance & clearance, ANY * any) {
           TagType tagType = (restrictive ? TagType::restrictive : TagType::permissive);
           BIT_STRING_t &bits = (restrictive ? tag->choice.restrictivebitMap
                                             : tag->choice.permissivebitMap);
-          for (size_t byte = 0; byte != bits.size; ++byte) {
+          for (size_t byte = 0; byte != (size_t)bits.size; ++byte) {
             for (int bit = 0; bit != 8; ++bit) {
               if (bits.buf[byte] & (1 << (7 - bit))) {
                 Lacv catLacv{(byte * 8) + bit};
@@ -547,6 +550,8 @@ void Internal::parse_sslp_cat(Clearance & clearance, ANY * any) {
           }
         }
               break;
+        case SecurityTagPrivilege_PR_NOTHING:
+              ;
       }
     }
   }
