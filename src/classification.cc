@@ -67,3 +67,4 @@ std::unique_ptr<Label> Classification::encrypt(Label const & old, std::string co
 	auto equiv = (*i).second;
 	return equiv->create();
 }
+

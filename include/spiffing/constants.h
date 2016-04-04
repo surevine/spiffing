@@ -77,6 +77,7 @@ namespace Spiffing {
 	class CategoryRef;
 	class Lacv;
 	class Marking;
+	class Markings;
 	class CategoryData;
 	class CategoryGroup;
 	class EquivClassification;

@@ -27,6 +27,7 @@ SOFTWARE.
 #include <spiffing/tag.h>
 #include <spiffing/category.h>
 #include <spiffing/categoryref.h>
+#include <spiffing/markings.h>
 
 using namespace Spiffing;
 
@@ -56,8 +57,4 @@ void TagSet::compile(Spif const & spif) {
 	for (auto const & i : m_cats) {
 		i.second->compile(spif);
 	}
-}
-
-void TagSet::addMarking(std::unique_ptr<Marking> marking) {
-	m_marking = std::move(marking);
 }

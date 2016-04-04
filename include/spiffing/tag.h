@@ -49,14 +49,14 @@ namespace Spiffing {
           return m_t7enc;
         }
 
-        bool hasMarking() const {
-          return m_marking != nullptr;
+        bool hasMarkings() const {
+          return m_markings != nullptr;
         }
-        Marking const & marking() const {
-          return *m_marking;
+        Markings const & markings() const {
+          return *m_markings;
         }
-        void marking(std::unique_ptr<Marking> && m) {
-          m_marking = std::move(m);
+        void markings(std::unique_ptr<Markings> && m) {
+          m_markings = std::move(m);
         }
         TagSet const & tagSet() const {
           return m_tagSet;
@@ -68,7 +68,7 @@ namespace Spiffing {
         TagType m_tagType;
         InformativeEncoding m_t7enc;
         TagSet & m_tagSet;
-        std::unique_ptr<Marking> m_marking;
+        std::unique_ptr<Markings> m_markings;
     };
 }
 

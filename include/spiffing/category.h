@@ -28,7 +28,7 @@ SOFTWARE.
 
 #include <spiffing/constants.h>
 #include <spiffing/lacv.h>
-#include <spiffing/marking.h>
+#include <spiffing/markings.h>
 #include <string>
 #include <set>
 #include <memory>
@@ -58,14 +58,14 @@ namespace Spiffing {
         void required(std::unique_ptr<CategoryGroup> && cg);
         void encryptEquiv(std::shared_ptr<EquivCat> const & equiv);
 
-        bool hasMarking() const {
-          return m_marking != nullptr;
+        bool hasMarkings() const {
+          return m_markings != nullptr;
         }
-        Marking const & marking() const {
-          return *m_marking;
+        Markings const & markings() const {
+          return *m_markings;
         }
-        void marking(std::unique_ptr<Marking> && m) {
-          m_marking = std::move(m);
+        void markings(std::unique_ptr<Markings> && m) {
+          m_markings = std::move(m);
         }
         void encrypt(Label & label, std::string const & policy_id) const;
 
@@ -77,7 +77,7 @@ namespace Spiffing {
         std::set<lacv_t> m_excludedClass;
         std::set<std::unique_ptr<CategoryGroup>> m_required;
         std::set<std::unique_ptr<CategoryData>> m_excluded;
-        std::unique_ptr<Marking> m_marking;
+        std::unique_ptr<Markings> m_markings;
         std::multimap<std::string, std::shared_ptr<EquivCat>> m_encryptEquivs;
     };
 }

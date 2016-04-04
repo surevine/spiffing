@@ -24,7 +24,7 @@ SOFTWARE.
 ***/
 
 #include <spiffing/categorygroup.h>
-
+#include <spiffing/markings.h>
 #include <spiffing/categorydata.h>
 
 using namespace Spiffing;

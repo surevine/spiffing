@@ -27,7 +27,7 @@ SOFTWARE.
 #define SPIFFING_CLASS_H
 
 #include <spiffing/constants.h>
-#include <spiffing/marking.h>
+#include <spiffing/markings.h>
 #include <spiffing/equivclass.h>
 #include <string>
 #include <set>
@@ -50,15 +50,15 @@ namespace Spiffing {
 		void compile(Spif const &);
 		bool valid(Label const &) const;
 
-		bool hasMarking() const {
-			return m_marking != nullptr;
+		bool hasMarkings() const {
+			return m_markings != nullptr;
 		}
-		Marking const & marking() const {
-			return *m_marking;
+		Markings const & markings() const {
+			return *m_markings;
 		}
-		Marking const & marking(std::unique_ptr<Marking> && m) {
-			m_marking = std::move(m);
-			return *m_marking;
+		Markings const & markings(std::unique_ptr<Markings> && m) {
+			m_markings = std::move(m);
+			return *m_markings;
 		}
 		std::string const & fgcolour() const {
 			return m_fgcolour;
@@ -79,7 +79,7 @@ namespace Spiffing {
 		unsigned long m_hierarchy;
 		bool m_obsolete;
 		std::set<std::unique_ptr<CategoryGroup>> m_reqCats;
-		std::unique_ptr<Marking> m_marking;
+		std::unique_ptr<Markings> m_markings;
 		std::map<std::string, std::shared_ptr<EquivClassification>> m_equivEncrypt;
 		std::map<std::string, std::shared_ptr<EquivClassification>> m_equivDecrypt;
 	};

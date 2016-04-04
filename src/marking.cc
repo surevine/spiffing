@@ -31,7 +31,7 @@ namespace {
   const std::string s_blank;
 }
 
-Marking::Marking() {}
+Marking::Marking(std::string const & langTag) : m_langTag(langTag) {}
 
 std::string const & Marking::phrase(MarkingCode loc, std::string const & p) const {
   for (auto & i : m_phrase) {

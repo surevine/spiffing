@@ -55,13 +55,21 @@ namespace Spiffing {
         void addCategory(Tag const &, std::shared_ptr<Category> const &);
         std::set<CategoryRef> categories(TagType type) const;
         void compile(Spif const &);
-        void addMarking(std::unique_ptr<Marking> marking);
+        bool hasMarkings() const {
+            return m_markings != nullptr;
+        }
+        Markings const & markings() const {
+            return *m_markings;
+        }
+        void markings(std::unique_ptr<Markings> && m) {
+            m_markings = std::move(m);
+        }
     private:
         std::string m_id;
         std::string m_name;
         std::map<std::string,std::shared_ptr<Tag>> m_tags;
         std::map<std::pair<TagType, Lacv>, std::shared_ptr<Category>> m_cats;
-        std::unique_ptr<Marking> m_marking;
+        std::unique_ptr<Markings> m_markings;
     };
 }
 

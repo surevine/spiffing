@@ -57,70 +57,144 @@ namespace {
 		return Lacv::parse(std::string{(char *)lacv->value(), lacv->value_size()});
 	}
 
-	std::unique_ptr<Marking> parseMarking(rapidxml::xml_node<> * holder) {
-		std::unique_ptr<Marking> ptr;
-		for (auto qual = holder->first_node("markingQualifier"); qual; qual = qual->next_sibling("markingQualifier")) {
-			for (auto q = qual->first_node("qualifier"); q; q = q->next_sibling("qualifier")) {
-				auto qcode_a = q->first_attribute("qualifierCode");
-				auto txt_a = q->first_attribute("markingQualifier");
-				if (!txt_a) continue;
-				std::string txt(txt_a->value(), txt_a->value_size());
-				if (qcode_a) {
-					std::string qcode(qcode_a->value(), qcode_a->value_size());
-					if (!ptr) ptr = std::unique_ptr<Marking>{new Marking()};
-					if (qcode == "prefix") {
-						ptr->prefix(txt);
-					} else if (qcode == "suffix") {
-						ptr->suffix(txt);
-					} else if (qcode == "separator") {
-						ptr->sep(txt);
+	std::unique_ptr<Markings> parseMarkings(rapidxml::xml_node<> * holder) {
+		std::set<std::string> langTags; // Previously processed tags.
+		std::unique_ptr<Markings> markings;
+		for (;;) {
+			std::unique_ptr<Marking> ptr;
+			bool found{false}; // Have we found a new language tag to process?
+			std::string langTag; // Current tag
+			for (auto qual = holder->first_node("markingQualifier"); qual; qual = qual->next_sibling(
+					"markingQualifier")) {
+				if (auto lt_attr = qual->first_attribute("lang")) {
+					// TODO xml namespace.
+					std::string tag = lt_attr->value();
+					if (found) {
+						if (langTag != lt_attr->value()) {
+							continue; // Not yet.
+						}
+					} else {
+						if (langTags.find(tag) == langTags.end()) {
+							langTags.insert(tag);
+							found = true;
+							langTag = tag;
+						} else {
+							continue; // Done already.
+						}
+					}
+				} else {
+					// No language tag set.
+					if (found) {
+						if (langTag != "") {
+							continue;
+						}
+					} else {
+						if (langTags.find("") == langTags.end()) {
+							langTags.insert("");
+							found = true;
+						} else {
+							continue;
+						}
+					}
+				}
+				for (auto q = qual->first_node("qualifier"); q; q = q->next_sibling("qualifier")) {
+					auto qcode_a = q->first_attribute("qualifierCode");
+					auto txt_a = q->first_attribute("markingQualifier");
+					if (!txt_a) continue;
+					std::string txt(txt_a->value(), txt_a->value_size());
+					if (qcode_a) {
+						std::string qcode(qcode_a->value(), qcode_a->value_size());
+						if (!ptr) ptr = std::unique_ptr<Marking>{new Marking(langTag)};
+						if (qcode == "prefix") {
+							ptr->prefix(txt);
+						} else if (qcode == "suffix") {
+							ptr->suffix(txt);
+						} else if (qcode == "separator") {
+							ptr->sep(txt);
+						}
 					}
 				}
 			}
-		}
-		for (auto data = holder->first_node("markingData"); data; data = data->next_sibling("markingData")) {
-			auto phrase_a = data->first_attribute("phrase");
-			if (!ptr) ptr = std::unique_ptr<Marking>{new Marking()};
-			int loc(0);
-			std::string phrase;
-			if (phrase_a) {
-				phrase = std::string(phrase_a->value(), phrase_a->value_size());
-			}
-			bool locset = false;
-			bool unknown = false;
-			for (auto code = data->first_node("code"); code; code = code->next_sibling("code")) {
-				std::string codename(code->value(), code->value_size());
-				if (codename == "noMarkingDisplay") {
-					loc |= MarkingCode::noMarkingDisplay;
-					locset = true;
-				} else if (codename == "noNameDisplay") {
-					loc |= MarkingCode::noNameDisplay;
-				} else if (codename == "suppressClassName") {
-					loc |= MarkingCode::suppressClassName;
-				} else if (codename == "pageBottom") {
-					loc |= MarkingCode::pageBottom;
-					locset = true;
-				} else if (codename == "pageTop") {
-					loc |= MarkingCode::pageTop;
-					locset = true;
-				} else if (codename == "pageTopBottom") {
-					loc |= MarkingCode::pageTop | MarkingCode::pageBottom;
-					locset = true;
+			for (auto data = holder->first_node("markingData"); data; data = data->next_sibling("markingData")) {
+				if (auto lt_attr = data->first_attribute("lang")) {
+					// TODO xml namespace.
+					std::string tag = lt_attr->value();
+					if (found) {
+						if (langTag != lt_attr->value()) {
+							continue; // Not yet.
+						}
+					} else {
+						if (langTags.find(tag) == langTags.end()) {
+							found = true;
+							langTag = tag;
+							langTags.insert(tag);
+						} else {
+							continue; // Done already.
+						}
+					}
 				} else {
-					unknown = true;
+					// No language tag set.
+					if (found) {
+						if (langTag != "") {
+							continue;
+						}
+					} else {
+						if (langTags.find("") == langTags.end()) {
+							found = true;
+							langTags.insert("");
+						} else {
+							continue;
+						}
+					}
+				}
+				auto phrase_a = data->first_attribute("phrase");
+				if (!ptr) ptr = std::unique_ptr<Marking>{new Marking(langTag)};
+				int loc(0);
+				std::string phrase;
+				if (phrase_a) {
+					phrase = std::string(phrase_a->value(), phrase_a->value_size());
+				}
+				bool locset = false;
+				bool unknown = false;
+				for (auto code = data->first_node("code"); code; code = code->next_sibling("code")) {
+					std::string codename(code->value(), code->value_size());
+					if (codename == "noMarkingDisplay") {
+						loc |= MarkingCode::noMarkingDisplay;
+						locset = true;
+					} else if (codename == "noNameDisplay") {
+						loc |= MarkingCode::noNameDisplay;
+					} else if (codename == "suppressClassName") {
+						loc |= MarkingCode::suppressClassName;
+					} else if (codename == "pageBottom") {
+						loc |= MarkingCode::pageBottom;
+						locset = true;
+					} else if (codename == "pageTop") {
+						loc |= MarkingCode::pageTop;
+						locset = true;
+					} else if (codename == "pageTopBottom") {
+						loc |= MarkingCode::pageTop | MarkingCode::pageBottom;
+						locset = true;
+					} else {
+						unknown = true;
+					}
+				}
+				if (unknown) continue;
+				if (!locset) {
+					loc |= MarkingCode::pageBottom;
+				}
+				if (phrase_a) {
+					ptr->addPhrase(loc, std::string(phrase_a->value(), phrase_a->value_size()));
+				} else {
+					ptr->addPhrase(loc, "");
 				}
 			}
-			if (unknown) continue;
-			if (!locset) {
-				loc |= MarkingCode::pageBottom;
-			}
-			if (phrase_a) {
-				ptr->addPhrase(loc, std::string(phrase_a->value(), phrase_a->value_size()));
+			if (!markings) markings = std::unique_ptr<Markings>{new Markings()};
+			if (ptr) {
+				markings->marking(std::move(ptr));
 			} else {
-				ptr->addPhrase(loc, "");
+				return markings;
 			}
 		}
-		return ptr;
 	}
 
 	TagType parseTagType(rapidxml::xml_node<> * node) {
@@ -229,7 +303,7 @@ namespace {
 				cls->equivDecrypt(equiv);
 			}
 		}
-		cls->marking(parseMarking(classification));
+		cls->markings(parseMarkings(classification));
 		auto color_a = classification->first_attribute("color");
 		if (color_a && color_a->value()) {
 			cls->fgcolour(color_a->value());
@@ -262,7 +336,7 @@ namespace {
 		auto id_a = tagSet->first_attribute("id");
 		auto name_a = tagSet->first_attribute("name");
 		std::shared_ptr<TagSet> ts{new TagSet(id_a->value(), name_a->value())};
-		ts->addMarking(parseMarking(tagSet));
+		ts->markings(parseMarkings(tagSet));
 		for (auto tag = tagSet->first_node("securityCategoryTag"); tag; tag = tag->next_sibling("securityCategoryTag")) {
 			auto tagName_a = tag->first_attribute("name");
 			if (!tagName_a) throw std::runtime_error("securityCategoryTag has no name");
@@ -280,7 +354,7 @@ namespace {
 			}
 			std::shared_ptr<Tag> t{new Tag(*ts, tagType, t7enc, tagName_a->value())};
 			ts->addTag(t);
-			t->marking(parseMarking(tag));
+			t->markings(parseMarkings(tag));
 			for (auto cat = tag->first_node("tagCategory"); cat; cat = cat->next_sibling("tagCategory")) {
 				Lacv lacv = parseLacv(cat->first_attribute("lacv"));
 				std::shared_ptr<Category> c{new Category(*t, cat->first_attribute("name")->value(), lacv, ordinal++)};
@@ -298,7 +372,7 @@ namespace {
 					std::shared_ptr<EquivCat> ec = parseEquivCat(equiv, policies);
 					c->encryptEquiv(ec);
 				}
-				c->marking(parseMarking(cat));
+				c->markings(parseMarkings(cat));
 			}
 		}
 		return ts;
@@ -382,7 +456,7 @@ void Spif::parse(std::string const & s, Format fmt) {
 			m_tagSetsByName.insert(std::make_pair(ts->name(), ts));
 		}
 	}
-	m_marking = parseMarking(node);
+	m_markings = parseMarkings(node);
 	// Once we've parsed all the tagSets, we need to "compile" the category restrictions.
 	for (auto & ts : m_tagSets) {
 		ts.second->compile(*this);
@@ -393,16 +467,21 @@ void Spif::parse(std::string const & s, Format fmt) {
 }
 
 namespace {
-	void categoryMarkings(MarkingCode loc, std::string & marking, std::set<CategoryRef> const & cats, std::string const & sep) {
+	void categoryMarkings(MarkingCode loc, std::string const & langTag, std::string & marking, std::set<CategoryRef> const & cats, std::string const & sep) {
 		std::string tagName;
 		std::string tagsep;
 		std::string tagSuffix;
 		for (auto & i : cats) {
 			std::string phrase;
-			if (i->hasMarking()) {
-				phrase = i->marking().phrase(loc, i->name());
-			} else if (i->tag().hasMarking()) {
-				phrase = i->tag().marking().phrase(loc, i->name());
+			Marking const * markingData = nullptr;
+			if (i->hasMarkings()) {
+				markingData = i->markings().marking(langTag);
+			}
+			if (!markingData && i->tag().hasMarkings()) {
+				markingData = i->tag().markings().marking(langTag);
+			}
+			if (markingData) {
+				phrase = markingData->phrase(loc, i->name());
 			} else {
 				phrase = i->name();
 			}
@@ -413,11 +492,15 @@ namespace {
 				tagName = currentTagName;
 				marking += tagSuffix;
 				if (!marking.empty()) marking += sep;
-				if (i->tag().hasMarking()) {
-					tagSuffix = i->tag().marking().suffix();
-					tagsep = i->tag().marking().sep();
+				markingData = nullptr;
+				if (i->tag().hasMarkings()) {
+					markingData = i->tag().markings().marking(langTag);
+				}
+				if (markingData) {
+					tagSuffix = markingData->suffix();
+					tagsep = markingData->sep();
 					if (tagsep.empty()) tagsep = "/"; // Default;
-					marking += i->tag().marking().prefix();
+					marking += markingData->prefix();
 				} else {
 					tagSuffix = "";
 					tagsep = "/";
@@ -431,47 +514,53 @@ namespace {
 	}
 }
 
-std::string Spif::displayMarking(Label const & label, MarkingCode loc) const {
+std::string Spif::displayMarking(Label const & label, std::string const & langTag, MarkingCode loc) const {
 	std::string marking;
 	if (label.policy_id() != m_oid) {
 		throw std::runtime_error("Label is incorrect policy");
 	}
 	bool suppressClassName = false;
 	for (auto & i : label.categories()) {
-		if (i->hasMarking()) {
-			if (i->marking().suppressClassName(loc)) {
+		if (i->hasMarkings()) {
+			Marking const * m;
+			if ((m = i->markings().marking(langTag)) && m->suppressClassName(loc)) {
 				suppressClassName = true;
 				break;
 			}
 		}
 	}
 	std::string sep;
-	if (m_marking != nullptr) sep = m_marking->sep();
+	Marking const * markingData = nullptr;
+	if (m_markings != nullptr) markingData = m_markings->marking(langTag);
+	if (markingData != nullptr) sep = markingData->sep();
 	if (sep.empty()) sep = " "; // Default.
 	if (!suppressClassName) {
-		if (label.classification().hasMarking()) {
-			marking += label.classification().marking().phrase(loc, label.classification().name());
-		} else if (m_marking != nullptr) {
-			marking += m_marking->phrase(loc, label.classification().name());
+		Marking const * clsMarking;
+		if (label.classification().hasMarkings() && (clsMarking = label.classification().markings().marking(langTag))) {
+			marking += clsMarking->phrase(loc, label.classification().name());
+		} else if (markingData != nullptr) {
+			marking += markingData->phrase(loc, label.classification().name());
 		} else {
 			marking += label.classification().name();
 		}
 	}
-	categoryMarkings(loc, marking, label.categories(), sep);
-	if (m_marking != nullptr) marking = m_marking->prefix() + marking;
-	if (m_marking != nullptr) marking += m_marking->suffix();
+	categoryMarkings(loc, langTag, marking, label.categories(), sep);
+	if (markingData != nullptr) marking = markingData->prefix() + marking;
+	if (markingData != nullptr) marking += markingData->suffix();
 	return marking;
 }
 
-std::string Spif::displayMarking(Spiffing::Clearance const & clearance) const {
+std::string Spif::displayMarking(Spiffing::Clearance const & clearance, std::string const & langTag) const {
 	std::string marking;
 	bool any{false};
 	if (clearance.policy_id() != m_oid) {
 		throw std::runtime_error("Clearance is incorrect policy");
 	}
 	std::string sep;
-	if (m_marking != nullptr) marking += m_marking->prefix();
-	if (m_marking != nullptr) sep = m_marking->sep();
+	Marking const * markingData = nullptr;
+	if (m_markings != nullptr) markingData = m_markings->marking(langTag);
+	if (markingData != nullptr) marking += markingData->prefix();
+	if (markingData != nullptr) sep = markingData->sep();
 	if (sep.empty()) sep = " "; // Default.
 	marking += "{";
 	for (auto cls : clearance.classifications()) {
@@ -495,8 +584,8 @@ std::string Spif::displayMarking(Spiffing::Clearance const & clearance) const {
 		}
 	}
 	marking += "}";
-	categoryMarkings(MarkingCode::pageBottom, marking, clearance.categories(), sep);
-	if (m_marking != nullptr) marking += m_marking->suffix();
+	categoryMarkings(MarkingCode::pageBottom, langTag, marking, clearance.categories(), sep);
+	if (markingData != nullptr) marking += markingData->suffix();
 	return marking;
 }
 

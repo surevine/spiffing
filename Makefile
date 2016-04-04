@@ -36,7 +36,15 @@ $(W_DIR)/deps/asn1c/asn1c/asn1c: submodules
 	cd deps/asn1c && ./configure --prefix=$(W_DIR)/tmp-asn1c
 	cd deps/asn1c && make
 
-tests: test spifflicator transpifferizer
+tests:
+	@echo "Rebuilding:: Clean"
+	@$(MAKE) clean
+	@echo "Rebuilding:: ASN.1"
+	@$(MAKE) gen-ber/.marker
+	@echo "Rebuilding:: ASN.1 Compile"
+	@$(MAKE) -j6 "DEBUG=-g --coverage" build/libspiffing-asn.a
+	@echo "Rebuilding:: Rest"
+	@$(MAKE) -j6 "MAKELEVEL=0" "DEBUG=-g --coverage" test spifflicator transpifferizer
 	@echo "Valgrind test"
 	@$(MAKE) -C test-data/ EXECUTOR="valgrind --error-exitcode=99 --leak-check=full"
 	@echo "Coverage test"
@@ -55,19 +63,19 @@ coverage: quick-tests
 	@mkdir -p report/lcov/
 	@genhtml --output-directory report/lcov/ build/spiffing.info
 
-
-GENBERSOURCE=$(wildcard gen-ber/*.c) gen-ber/.marker
+ASNSOURCE=ESSSecurityLabel.asn Clearance.asn SSLPrivileges.asn MissiSecurityCategories.asn
+GENBERSOURCE=$(wildcard gen-ber/*.c) $(ASNSOURCE:%.asn=gen-ber/%.c)
 GENBEROBJS=$(GENBERSOURCE:.c=.o)
 SPIFFINGSOURCE=$(wildcard src/*.cc)
 SPIFFINGOBJS=$(SPIFFINGSOURCE:src/%.cc=$(SPIFFINGBUILD)/spiffing/%.o)
 
-DEBUG?=-g --coverage #-fprofile-dir=./build/ #-fprofile-generate=./build/ #-DEMIT_ASN_DEBUG=1
+DEBUG?=-g# --coverage #-fprofile-dir=./build/ #-fprofile-generate=./build/ #-DEMIT_ASN_DEBUG=1
 CXXFLAGS=-std=c++11
 
-gen-ber/.marker: ESSSecurityLabel.asn Clearance.asn acp145.asn SSLPrivileges.asn MissiSecurityCategories.asn
+gen-ber/.marker: $(ASNSOURCE) acp145.asn
 	@mkdir -p $(dir $@)
 	@touch gen-ber/.marker
-	(cd $(dir $@) && $(ASN1C) -fwide-types $(^:%=../%))
+	@(cd $(dir $@) && $(ASN1C) -fwide-types $(^:%=../%))
 	@mv gen-ber/converter-sample.c .
 	@echo $(GENBEROBJS) $(GENBERSOURCE)
 
@@ -86,6 +94,7 @@ build/libspiffing-asn.a: $(GENBEROBJS)
 	@mkdir -p $(dir $@)
 	@rm -f $@
 	@ar rcs $@ $^
+	@echo Created and ranlib?
 endif
 
 $(SPIFFINGBUILD)/libspiffing.a: $(SPIFFINGOBJS)

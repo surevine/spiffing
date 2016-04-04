@@ -33,7 +33,11 @@ SOFTWARE.
 namespace Spiffing {
   class Marking {
   public:
-    Marking();
+    Marking(std::string const & langTag);
+
+    std::string const & langTag() const {
+      return m_langTag;
+    }
 
     std::string const & prefix() const {
       return m_prefix;
@@ -61,6 +65,7 @@ namespace Spiffing {
     }
 
   private:
+    std::string m_langTag;
     std::string m_prefix;
     std::string m_suffix;
     std::string m_sep;
