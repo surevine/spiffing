@@ -36,19 +36,33 @@ namespace Spiffing {
     CategoryRef(std::shared_ptr<Category> const & cat) : m_cat(cat) {}
     CategoryRef(CategoryRef const & other) : m_cat(other.m_cat) {}
     CategoryRef(CategoryRef && other) : m_cat(std::move(other.m_cat)) {}
-    Category & operator * () { return *m_cat; }
-    Category const & operator * () const { return *m_cat; }
-    Category * operator -> () { return &*m_cat; }
-    Category const * operator -> () const { return &*m_cat; }
-    bool operator <(CategoryRef const & other) const {
-      return *m_cat < *other;
+    Category & operator * () {
+        std::shared_ptr<Category> cat(m_cat);
+        return *cat;
     }
-    std::shared_ptr<Category> const & ptr() const {
-      return m_cat;
+    Category const & operator * () const {
+        std::shared_ptr<Category> cat(m_cat);
+        return *cat;
+    }
+    Category * operator -> () {
+        std::shared_ptr<Category> cat(m_cat);
+        return &*cat;
+    }
+    Category const * operator -> () const {
+        std::shared_ptr<Category> cat(m_cat);
+        return &*cat;
+    }
+    bool operator <(CategoryRef const & other) const {
+        std::shared_ptr<Category> cat(m_cat);
+        return *cat < *other;
+    }
+    std::shared_ptr<Category> const ptr() const {
+        std::shared_ptr<Category> cat(m_cat);
+        return cat;
     }
 
   private:
-    std::shared_ptr<Category> m_cat;
+    std::weak_ptr<Category> m_cat;
   };
 }
 

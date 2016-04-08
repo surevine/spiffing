@@ -31,7 +31,7 @@ SOFTWARE.
 using namespace Spiffing;
 
 Tag::Tag(TagSet & tagSet, TagType tagType, InformativeEncoding t7enc, std::string const & name)
-: m_tagSet(tagSet), m_tagType(tagType), m_t7enc(t7enc), m_name{name} {
+: m_name{name}, m_tagType(tagType), m_t7enc(t7enc), m_tagSet(tagSet) {
 }
 
 void Tag::addCategory(std::shared_ptr<Category> const & c) {

@@ -1,14 +1,14 @@
 <tests>
   <sequence>
     <policy spif="food-policy.xml"/>
-    <test label='food-label-milk-chocolate.xml' valid='true' clearance='food-clearance-lactose-intolerant.xml' label-marking='[ Sweet/Yummy Chocolate Brown Contains Lactose Not Vegan Animal Rights ]' clearance-marking='[ {Commodity|Luxury} Sweet Contains Peanut+Nut+Gluten Not Vegan ]' acdf-result='0'/>
+    <!-- 1 --><test label='food-label-milk-chocolate.xml' valid='true' clearance='food-clearance-lactose-intolerant.xml' label-marking='[ Food Sweet/Yummy Chocolate Brown Contains Lactose Not Vegan Animal Rights ]' clearance-marking='[ {Commodity|Luxury} Sweet Contains Peanut+Nut+Gluten Not Vegan ]' acdf-result='0'/>
     <test label='food-label-milk-chocolate.xml' valid='true' clearance='food-clearance-all-okay.xml' acdf-result='1'/>
     <test label='food-label-cheap-milk-chocolate.xml' valid='false'/>
     <test label='food-label-meaty-milk-chocolate.xml' valid='false'/>
     <test label='stupid-label.ber' exception='Unknown policy: 1.1'/>
     <test label='this-file-does-not-exist.ber' exception='No data to parse'/>
     <test label='food-label-bacon.xml' valid='true'/>
-    <test label='food-label-water.xml' label-marking='[ FREE British Flag ]' valid='true'/>
+    <test label='food-label-water.xml' label-marking='[ Food FREE British Flag ]' valid='true'/>
   </sequence>
   <sequence>
     <policy spif='food-policy-borked.xml' exception='Duplicate excluded classification in category'/>
@@ -16,7 +16,31 @@
   <sequence>
     <policy spif="tlp-plus.xml"/>
     <policy spif="tlp.xml"/>
-    <test label="tlpx-amber-eu.xml" valid="true" label-marking="TLPX:AMBER J:EU" encrypt="1.2.826.0.1.6726289.0.2" encrypt-marking="TLP:AMBER [REGION=EU] [Additional Handling May Apply]/[Imported Data]"/>
+    <policy spif="uk-demo.xml"/>
+    <!-- 9 --><test label="tlpx-amber-eu.xml" valid="true" label-marking="TLPX:AMBER J:EU" encrypt="1.2.826.0.1.6726289.0.2" encrypt-marking="TLP:AMBER [REGION=EU] [Additional Handling May Apply]/[Imported Data]"/>
     <test label="tlpx-green-sh-na.xml" valid="true" label-marking="TLPX:GREEN J:SafeHarbour Do not action" encrypt="1.2.826.0.1.6726289.0.2" encrypt-marking="TLP:GREEN [REGION=EU/US] [Imported Data]"/>
+    <test label="tlpx-amber-eu.xml" clearance="uk-demo-secret-uk.xml" encrypt="1.2.826.0.1.6726289.0.4" encrypt-marking="DEMO-UK SECRET - UK / EU EYES ONLY" clearance-marking="DEMO-{OFFICIAL|SECRET|TOP SECRET} OFFICIAL-SENSITIVE LOCSEN - UK / NATO / EU EYES ONLY" acdf-result="1"/>
+  </sequence>
+  <!-- ADatP 4774 Table 17 tests -->
+  <sequence>
+    <policy spif="nato-4774-policy.xml"/>
+    <test label="nato-4774-17-1.xml" valid="true" label-marking="NATO UNCLASSIFIED Releasable to ISAF, KFOR, RESOLUTE SUPPORT"/>
+    <test xml:lang="fr-CA" label="nato-4774-17-1.xml" valid="true" label-marking="NATO SANS CLASSIFICATION Communicable a ISAF, KFOR, RESOLUTE SUPPORT"/>
+    <test xml:lang="fr" label="nato-4774-17-1.xml" valid="true" label-marking="NATO SANS CLASSIFICATION Communicable a ISAF, KFOR, RESOLUTE SUPPORT"/>
+    <test label="nato-4774-17-2.xml" valid="true" label-marking="NATO UNCLASSIFIED"/>
+    <test label="nato-4774-17-3.xml" valid="true" label-marking="NATO UNCLASSIFIED - STAFF"/>
+    <test xml:lang="en-GB" label="nato-4774-17-4.xml" valid="true" label-marking="NATO RESTRICTED Releasable to Japan, Switzerland, Ukraine"/>
+    <test xml:lang="en" label="nato-4774-17-4.xml" valid="true" label-marking="NATO RESTRICTED Releasable to Japan, Switzerland, Ukraine"/>
+    <test label="nato-4774-17-4.xml" valid="true" label-marking="NATO RESTRICTED Releasable to Japan, Switzerland, Ukraine"/>
+    <!--
+        The following is not only invalid, according to the policy, but also the EAPC releasability is shown in the marking.
+        It looks like the intent is that when this context category is set, the releasable to should be suppressed, but there
+        is no facility within the XML-SPIF to do so.
+        <test label="nato-4774-17-5.xml" label-marking="NATO/EAPC CONFIDENTIAL Releasable to ISAF"/>
+    -->
+    <test label="nato-4774-17-6.xml" valid="true" label-marking="NATO/KFOR CONFIDENTIAL Ireland, Sweden, Ukraine, NATO ONLY"/><!-- Note changed ordering -->
+
+    <!-- Extra tests -->
+    <test label="nato-4774-extra-1.xml" valid="true" label-marking="COSMIC TOP SECRET"/>
   </sequence>
 </tests>

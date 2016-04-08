@@ -1,0 +1,104 @@
+<SPIF xmlns="http://www.xmlspif.org/spif"
+      creationDate="2015-11-11 09:23:00"
+      rbacId="2.16.840.1.101.2.1.8.3"
+      privilegeId="2.16.840.1.101.2.1.8.3"
+      originatorDN="cn=Dave Cridland,o=Surevine,c=GB"
+      schemaVersion="2.0"
+      keyIdentifier="">
+    <!--
+        This is an example policy, designed to show what the UK HMG GCSP might look like
+        if written as a SPIF.
+
+        See: https://en.wikipedia.org/wiki/Government_Security_Classifications_Policy
+
+        It also contains equivalent policy mappings to another two example policies.
+    -->
+    <defaultSecurityPolicyId name="Default" id="1.1"/>
+    <securityPolicyId name="UK" id="1.2.826.0.1.6726289.0.4"/>
+    <equivalentPolicies>
+        <equivalentPolicy name="TLPX" id="1.2.826.0.1.6726289.0.1"/>
+        <equivalentPolicy name="TLP" id="1.2.826.0.1.6726289.0.2"/>
+        <equivalentPolicy name="BSI" id="1.2.826.0.1.6726289.0.3"/>
+    </equivalentPolicies>
+    <securityClassifications>
+        <securityClassification name="OFFICIAL" lacv="10" hierarchy="0" color="#AAAAFF">
+            <equivalentClassification policyRef="TLPX" lacv="11" applied="encrypt"/>
+            <equivalentClassification policyRef="BSI" lacv="11" applied="encrypt"/>
+            <equivalentClassification policyRef="TLP" lacv="11" applied="encrypt"/>
+        </securityClassification>
+        <securityClassification name="SECRET" lacv="4" hierarchy="1" color="#FFAA00"/>
+        <securityClassification name="TOP SECRET" lacv="5" hierarchy="2" color="#FF0000"/>
+    </securityClassifications>
+    <securityCategoryTagSets>
+        <securityCategoryTagSet name="Sensitive" id="1.2.826.0.1.6726289.0.4.1">
+            <securityCategoryTag name="Sensitive" tagType="restrictive">
+                <tagCategory name="SENSITIVE" lacv="0">
+                    <markingData phrase="OFFICIAL-SENSITIVE">
+                        <code>suppressClassName</code>
+                    </markingData>
+                    <excludedClass>SECRET</excludedClass>
+                    <excludedClass>TOP SECRET</excludedClass>
+                    <requiredCategory operation="onlyOne">
+                        <categoryGroup tagSetRef="Sensitive Descriptors" tagType="restrictive" all="true"/>
+                        <categoryGroup tagSetRef="Sensitive Descriptors" tagType="tagType7" all="true"/>
+                    </requiredCategory>
+                </tagCategory>
+            </securityCategoryTag>
+        </securityCategoryTagSet>
+        <securityCategoryTagSet name="Sensitive Descriptors" id="1.2.826.0.1.6726289.0.4.2">
+            <securityCategoryTag tagType="tagType7" name="Informative Sensitive Descriptors" tag7Encoding="bitSetAttributes" singleSelection="true">
+                <tagCategory name="COMMERCIAL" lacv="0">
+                    <requiredCategory operation="all">
+                        <categoryGroup tagSetRef="Sensitive" tagType="restrictive" lacv="0"/>
+                    </requiredCategory>
+                </tagCategory>
+                <tagCategory name="PERSONAL" lacv="1">
+                    <requiredCategory operation="all">
+                        <categoryGroup tagSetRef="Sensitive" tagType="restrictive" lacv="0"/>
+                    </requiredCategory>
+                </tagCategory>
+            </securityCategoryTag>
+            <securityCategoryTag tagType="restrictive" name="Mandatory Sensitive Descriptors">
+                <tagCategory name="LOCSEN" lacv="0">
+                    <requiredCategory operation="all">
+                        <categoryGroup tagSetRef="Sensitive" tagType="restrictive" lacv="0"/>
+                    </requiredCategory>
+                    <excludedCategory tagSetRef="Sensitive Descriptors" tagType="tagType7" all="true"/>
+                </tagCategory>
+            </securityCategoryTag>
+        </securityCategoryTagSet>
+        <securityCategoryTagSet name="Codewords" id="1.2.826.0.1.6726289.0.4.4">
+            <securityCategoryTag name="Mandatory Codewords" tagType="enumerated" enumType="restrictive">
+                <tagCategory name="OVERLORD" lacv="0"/>
+            </securityCategoryTag>
+            <securityCategoryTag name="Informative Codewords" tagType="tagType7" tag7Encoding="securityAttributes">
+                <tagCategory name="DYNAMO" lacv="0"/>
+            </securityCategoryTag>
+        </securityCategoryTagSet>
+        <securityCategoryTagSet name="National Caveats" id="1.2.826.0.1.6726289.0.4.3">
+            <securityCategoryTag name="Eyes Only" tagType="permissive">
+                <tagCategory name="UK" lacv="0">
+                    <excludedClass>OFFICIAL</excludedClass>
+                </tagCategory>
+                <tagCategory name="US" lacv="1">
+                    <excludedClass>OFFICIAL</excludedClass>
+                </tagCategory>
+                <tagCategory name="NATO" lacv="2">
+                    <excludedClass>OFFICIAL</excludedClass>
+                </tagCategory>
+                <tagCategory name="EU" lacv="3">
+                    <excludedClass>OFFICIAL</excludedClass>
+                </tagCategory>
+                <markingQualifier>
+                    <qualifier markingQualifier="- " qualifierCode="prefix"/>
+                    <qualifier markingQualifier=" / " qualifierCode="separator"/>
+                    <qualifier markingQualifier=" EYES ONLY" qualifierCode="suffix"/>
+                </markingQualifier>
+            </securityCategoryTag>
+        </securityCategoryTagSet>
+    </securityCategoryTagSets>
+    <markingQualifier>
+        <qualifier markingQualifier=" " qualifierCode="separator"/>
+        <qualifier markingQualifier="DEMO-" qualifierCode="prefix"/>
+    </markingQualifier>
+</SPIF>

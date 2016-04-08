@@ -44,8 +44,14 @@ namespace Spiffing {
 		void parse(std::string const &, Format fmt);
 
 		bool acdf(Label const &, Clearance const &) const;
-		std::string displayMarking(Label const &, MarkingCode location = MarkingCode::pageBottom) const;
-		std::string displayMarking(Clearance const &) const;
+		std::string displayMarking(Label const & l, MarkingCode location = MarkingCode::pageBottom) const {
+			return displayMarking(l, "", location);
+		}
+		std::string displayMarking(Label const &, std::string const & langTag, MarkingCode location = MarkingCode::pageBottom) const;
+		std::string displayMarking(Clearance const & c, std::string const & langTag) const;
+		std::string displayMarking(Clearance const & c) const {
+			return displayMarking(c, "");
+		}
 		bool valid(Label const & l) const;
 		void assertValid(Label const & l) const;
 
@@ -83,7 +89,7 @@ namespace Spiffing {
 		std::map<std::string /* OID */, std::shared_ptr<TagSet>> m_tagSets;
 		std::map<std::string /* Name */, std::shared_ptr<TagSet>> m_tagSetsByName;
 		std::map<std::string /* Name */, std::string /* OID */> m_equivPolicies;
-		std::unique_ptr<Marking> m_marking;
+		std::unique_ptr<Markings> m_markings;
 		std::multimap<std::string /* OID */, std::unique_ptr<CategoryGroup>> m_equivReqs; /* Required Categories for equivalence */
 	};
 }

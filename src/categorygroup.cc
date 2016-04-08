@@ -24,7 +24,7 @@ SOFTWARE.
 ***/
 
 #include <spiffing/categorygroup.h>
-
+#include <spiffing/markings.h>
 #include <spiffing/categorydata.h>
 
 using namespace Spiffing;
@@ -41,6 +41,8 @@ bool CategoryGroup::matches(Label const & l) const {
         break;
       case OperationType::oneOrMore:
         return true;
+      case OperationType::all:
+        ;
       }
       found = true;
     } else if (m_opType == OperationType::all) {

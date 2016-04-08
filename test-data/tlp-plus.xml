@@ -2,7 +2,7 @@
       creationDate="2015-09-24 09:23:00"
       rbacId="2.16.840.1.101.2.1.8.3"
       privilegeId="2.16.840.1.101.2.1.8.3"
-      originatorDN="cn=Dave Cridland,o=Survine,c=GB"
+      originatorDN="cn=Dave Cridland,o=Surevine,c=GB"
       schemaVersion="2.0"
       keyIdentifier="">
     <defaultSecurityPolicyId name="Default" id="1.1"/>
@@ -13,42 +13,69 @@
                 <categoryGroup tagSetRef="Additional Information" tagType="tagType7" lacv="1"/>
             </requiredCategory>
         </equivalentPolicy>
+        <equivalentPolicy name="UK-DEMO" id="1.2.826.0.1.6726289.0.4"/>
     </equivalentPolicies>
     <securityClassifications>
         <securityClassification name="WHITE" lacv="10" hierarchy="1" color="white">
             <equivalentClassification policyRef="TLP" lacv="10" applied="both"/>
+            <equivalentClassification policyRef="UK-DEMO" lacv="10" applied="encrypt"/>
         </securityClassification>
         <securityClassification name="GREEN" lacv="11" hierarchy="2" color="green">
             <equivalentClassification policyRef="TLP" lacv="11" applied="both"/>
+            <equivalentClassification policyRef="UK-DEMO" lacv="10" applied="encrypt">
+                <requiredCategory operation="all">
+                    <categoryGroup tagSetRef="Sensitive" tagType="restrictive" lacv="0"/>
+                </requiredCategory>
+            </equivalentClassification>
         </securityClassification>
-        <securityClassification name="AMBER" lacv="12" hierarchy="3" color="orange">
+        <securityClassification name="AMBER" lacv="12" hierarchy="3" color="#FFAA00">
             <equivalentClassification policyRef="TLP" lacv="12" applied="both">
                 <requiredCategory operation="all">
                     <categoryGroup tagSetRef="Additional Information" tagType="tagType7" lacv="0"/>
                 </requiredCategory>
             </equivalentClassification>
+            <equivalentClassification policyRef="UK-DEMO" lacv="4" applied="encrypt"/>
+            <requiredCategory operation="oneOrMore">
+                <categoryGroup tagSetRef="Dissemination" tagType="permissive"/>
+                <categoryGroup tagSetRef="Dissemination" tagType="tagType7"/>
+            </requiredCategory>
         </securityClassification>
         <securityClassification name="RED" lacv="13" hierarchy="4" color="red">
             <equivalentClassification policyRef="TLP" lacv="13" applied="both"/>
+            <equivalentClassification policyRef="UK-DEMO" lacv="4" applied="encrypt"/>
         </securityClassification>
     </securityClassifications>
     <securityCategoryTagSets>
-        <securityCategoryTagSet name="Jurisdiction" id="1.2.826.0.1.6726289.0.1.1">
+        <securityCategoryTagSet name="Dissemination" id="1.2.826.0.1.6726289.0.1.1">
             <securityCategoryTag name='Jurisdiction' tagType="permissive">
                 <tagCategory name="EU" lacv="0">
                     <equivalentSecCategoryTag policyRef="TLP" tagSetId="1.2.826.0.1.6726289.0.2.1" tagType="permissive" lacv="0" applied="encrypt"/>
+                    <equivalentSecCategoryTag policyRef="UK-DEMO" tagSetId="1.2.826.0.1.6726289.0.4.3" tagType="permissive" lacv="3" applied="encrypt"/>
+                    <equivalentSecCategoryTag policyRef="UK-DEMO" tagSetId="1.2.826.0.1.6726289.0.4.3" tagType="permissive" lacv="0" applied="encrypt"/>
                 </tagCategory>
                 <tagCategory name="SafeHarbour" lacv="1">
                     <equivalentSecCategoryTag policyRef="TLP" tagSetId="1.2.826.0.1.6726289.0.2.1" tagType="permissive" lacv="0" applied="encrypt"/>
                     <equivalentSecCategoryTag policyRef="TLP" tagSetId="1.2.826.0.1.6726289.0.2.1" tagType="permissive" lacv="1" applied="encrypt"/>
+                    <equivalentSecCategoryTag policyRef="UK-DEMO" tagSetId="1.2.826.0.1.6726289.0.4.3" tagType="permissive" lacv="0" applied="encrypt"/>
+                    <equivalentSecCategoryTag policyRef="UK-DEMO" tagSetId="1.2.826.0.1.6726289.0.4.3" tagType="permissive" lacv="1" applied="encrypt"/>
+                    <equivalentSecCategoryTag policyRef="UK-DEMO" tagSetId="1.2.826.0.1.6726289.0.4.3" tagType="permissive" lacv="3" applied="encrypt"/>
                 </tagCategory>
                 <tagCategory name="US" lacv="2">
                     <equivalentSecCategoryTag policyRef="TLP" tagSetId="1.2.826.0.1.6726289.0.2.1" tagType="permissive" lacv="1" applied="encrypt"/>
+                    <equivalentSecCategoryTag policyRef="UK-DEMO" tagSetId="1.2.826.0.1.6726289.0.4.3" tagType="permissive" lacv="0" applied="encrypt"/>
+                    <equivalentSecCategoryTag policyRef="UK-DEMO" tagSetId="1.2.826.0.1.6726289.0.4.3" tagType="permissive" lacv="1" applied="encrypt"/>
                 </tagCategory>
                 <markingQualifier>
                     <qualifier markingQualifier="," qualifierCode="separator"/>
                     <qualifier markingQualifier="J:" qualifierCode="prefix"/>
                 </markingQualifier>
+            </securityCategoryTag>
+            <securityCategoryTag tagType="tagType7" tag7Encoding="bitSetAttributes" name="Additional Handling">
+                <tagCategory name="Other" lacv="0">
+                    <!-- Other handling required -->
+                    <excludedClass>WHITE</excludedClass>
+                    <excludedClass>GREEN</excludedClass>
+                </tagCategory>
             </securityCategoryTag>
         </securityCategoryTagSet>
         <securityCategoryTagSet name="Mandatory Data Handling" id="1.2.826.0.1.6726289.0.1.2">
@@ -83,4 +110,7 @@
     <markingQualifier>
         <qualifier markingQualifier="TLPX:" qualifierCode="prefix"/>
     </markingQualifier>
+    <markingData phrase="">
+        <code>replacePolicy</code>
+    </markingData>
 </SPIF>

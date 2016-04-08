@@ -86,7 +86,7 @@ namespace Spiffing {
         throw std::runtime_error("Failed to decode enumerated tag");
       }
       std::string tagSetName = oid2str(&enumeratedTag->tagName);
-      for (size_t ii{0}; ii != enumeratedTag->attributeList.list.count; ++ii) {
+      for (size_t ii{0}; ii != (size_t)enumeratedTag->attributeList.list.count; ++ii) {
         auto n = enumeratedTag->attributeList.list.array[ii];
         Lacv catLacv{std::string((char *)n->buf, n->size)};
         auto cat = object.policy().tagSetLookup(tagSetName)->categoryLookup(enum_type, catLacv);
@@ -105,7 +105,7 @@ namespace Spiffing {
         throw std::runtime_error("Failed to decode attributeFlag tag");
       }
       std::string tagSetName = oid2str(&tag->tagName);
-      for (size_t ii{0}; ii != tag->attributeFlags.size; ++ii) {
+      for (size_t ii{0}; ii != (size_t)tag->attributeFlags.size; ++ii) {
         if (!tag->attributeFlags.buf[ii]) continue;
         for (int ij{0}; ij != 8; ++ij) {
           if (tag->attributeFlags.buf[ii] & (1 << (7 - ij))) {
@@ -129,14 +129,14 @@ namespace Spiffing {
       }
       std::string tagSetName = oid2str(&tag->tagName);
       if (tag->field.present == FreeFormField_PR_securityAttributes) {
-        for (size_t ii{0}; ii != tag->field.choice.securityAttributes.list.count; ++ii) {
+        for (size_t ii{0}; ii != (size_t)tag->field.choice.securityAttributes.list.count; ++ii) {
           auto n = tag->field.choice.securityAttributes.list.array[ii];
           Lacv catLacv{std::string((char *)n->buf, n->size)};
           auto cat = object.policy().tagSetLookup(tagSetName)->categoryLookup(TagType::informative, catLacv);
           object.addCategory(cat);
         }
       } else {
-        for (size_t ii{0}; ii != tag->field.choice.bitSetAttributes.size; ++ii) {
+        for (size_t ii{0}; ii != (size_t)tag->field.choice.bitSetAttributes.size; ++ii) {
           if (!tag->field.choice.bitSetAttributes.buf[ii]) continue;
           for (int ij{0}; ij != 8; ++ij) {
             if (tag->field.choice.bitSetAttributes.buf[ii] & (1 << (7 - ij))) {

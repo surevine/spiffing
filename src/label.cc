@@ -102,7 +102,7 @@ void Label::parse_ber(std::string const & label) {
 		m_class = m_policy->classificationLookup(*asn_label->security_classification);
 	}
 	if (asn_label->security_categories) {
-		for (size_t i{0}; i != asn_label->security_categories->list.count; ++i) {
+		for (size_t i{0}; i != (size_t)asn_label->security_categories->list.count; ++i) {
 			std::string tagType = Internal::oid2str(&asn_label->security_categories->list.array[i]->type);
 			if (tagType == OID::NATO_EnumeratedPermissive) { // Enum permissive.
 				Internal::parse_enum_cat<Label>(TagType::enumeratedPermissive, *this, &asn_label->security_categories->list.array[i]->value);

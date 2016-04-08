@@ -30,8 +30,7 @@ SOFTWARE.
 namespace Spiffing {
 	enum class Format {
 		BER,		// X.841 syntax.
-		DER,		// Equal to BER.
-		XER,		// X.693 ; categories don't work here due to ANY DEFINED BY.
+		DER = BER,		// Equal to BER.
 		XML,		// Namespaced XML.
 		ANY			// Try to guess.
 	};
@@ -61,12 +60,12 @@ namespace Spiffing {
 	typedef enum MarkingCode {
 		pageTop = 1 << 0,
 		pageBottom = 1 << 1,
-		pageTopBottom = 1 << 2,
-		documentEnd = 1 << 3,
-		noNameDisplay = 1 << 4,
-		noMarkingDisplay = 1 << 5,
-		documentStart = 1 << 6,
-		suppressClassName = 1 << 7
+		documentEnd = 1 << 2,
+		noNameDisplay = 1 << 3,
+		noMarkingDisplay = 1 << 4,
+		documentStart = 1 << 5,
+		suppressClassName = 1 << 6,
+		replacePolicy = 1 << 7
 	} MarkingCode;
 	class Classification;
 	class Label;
@@ -78,6 +77,7 @@ namespace Spiffing {
 	class CategoryRef;
 	class Lacv;
 	class Marking;
+	class Markings;
 	class CategoryData;
 	class CategoryGroup;
 	class EquivClassification;

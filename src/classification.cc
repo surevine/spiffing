@@ -34,10 +34,6 @@ Classification::Classification(lacv_t lacv, std::string const & name, unsigned l
 : m_lacv{lacv}, m_name{name}, m_hierarchy{hierarchy}, m_obsolete{obsolete} {
 }
 
-bool Classification::operator < (Classification const & c) const {
-	return m_hierarchy < c.m_hierarchy;
-}
-
 void Classification::addRequiredCategory(std::unique_ptr<CategoryGroup> && reqCats) {
 	m_reqCats.insert(std::move(reqCats));
 }
@@ -67,3 +63,4 @@ std::unique_ptr<Label> Classification::encrypt(Label const & old, std::string co
 	auto equiv = (*i).second;
 	return equiv->create();
 }
+
