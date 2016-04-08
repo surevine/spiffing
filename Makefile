@@ -70,7 +70,7 @@ SPIFFINGSOURCE=$(wildcard src/*.cc)
 SPIFFINGOBJS=$(SPIFFINGSOURCE:src/%.cc=$(SPIFFINGBUILD)/spiffing/%.o)
 
 DEBUG?=-g# --coverage #-fprofile-dir=./build/ #-fprofile-generate=./build/ #-DEMIT_ASN_DEBUG=1
-CXXFLAGS=-std=gnu++14
+CXXFLAGS=-std=c++11
 
 gen-ber/.marker: $(ASNSOURCE) acp145.asn
 	@mkdir -p $(dir $@)
