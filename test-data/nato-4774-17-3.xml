@@ -1,0 +1,6 @@
+<label xmlns='http://surevine.com/xmlns/spiffy'>
+  <policy id='1.3.26.1.3.1'/>
+  <classification lacv='1'/>
+  <tag type='permissive' id='1.3.26.1.4.4' lacv='1001'/>
+  <tag type='informative' id='1.3.26.1.4.3' lacv='2'/>
+</label>

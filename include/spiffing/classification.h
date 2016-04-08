@@ -38,7 +38,6 @@ namespace Spiffing {
 	class Classification {
 	public:
 		Classification(lacv_t lacv, std::string const & name, unsigned long hierarchy, bool obsolete=false);
-		bool operator < (Classification const &) const;
 
 		lacv_t lacv() const {
 			return m_lacv;
@@ -72,6 +71,10 @@ namespace Spiffing {
 		void equivDecrypt(std::shared_ptr<EquivClassification> const & equiv);
 		std::unique_ptr<Label> encrypt(Label const &, std::string const &) const;
 		std::unique_ptr<Label> decrypt(Label const &) const;
+
+		unsigned long hierarchy() const {
+			return m_hierarchy;
+		}
 	private:
 		lacv_t m_lacv;
 		std::string const m_name;
@@ -84,6 +87,11 @@ namespace Spiffing {
 		std::map<std::string, std::shared_ptr<EquivClassification>> m_equivDecrypt;
 	};
 
+	struct ClassificationHierarchyCompare {
+		bool operator() (std::shared_ptr<Classification> const & l, std::shared_ptr<Classification> const & r) {
+			return l->hierarchy() < r->hierarchy();
+		}
+	};
 }
 
 #endif

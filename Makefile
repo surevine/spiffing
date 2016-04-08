@@ -46,11 +46,11 @@ tests:
 	@echo "Rebuilding:: Rest"
 	@$(MAKE) -j6 "MAKELEVEL=0" "DEBUG=-g --coverage" test spifflicator transpifferizer
 	@echo "Valgrind test"
-	@$(MAKE) -C test-data/ EXECUTOR="valgrind --error-exitcode=99 --leak-check=full"
+	@$(MAKE) -C test-data/ EXECUTOR="valgrind --error-exitcode=99 --leak-check=full --show-leak-kinds=all"
 	@echo "Coverage test"
 	@$(MAKE) coverage
 	@echo "CLang test"
-	@../llvm/tools/clang/tools/scan-build/scan-build -o report/clang --use-analyzer=../llvm-build/bin/clang make SPIFFINGBUILD=tmp-analyzer tmp-analyzer/libspiffing.a
+	@scan-build -o report/clang make SPIFFINGBUILD=tmp-analyzer tmp-analyzer/libspiffing.a
 	@rm -rf tmp-analyzer
 
 quick-tests: test transpifferizer
@@ -70,7 +70,7 @@ SPIFFINGSOURCE=$(wildcard src/*.cc)
 SPIFFINGOBJS=$(SPIFFINGSOURCE:src/%.cc=$(SPIFFINGBUILD)/spiffing/%.o)
 
 DEBUG?=-g# --coverage #-fprofile-dir=./build/ #-fprofile-generate=./build/ #-DEMIT_ASN_DEBUG=1
-CXXFLAGS=-std=c++11
+CXXFLAGS=-std=gnu++14
 
 gen-ber/.marker: $(ASNSOURCE) acp145.asn
 	@mkdir -p $(dir $@)

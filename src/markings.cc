@@ -14,7 +14,7 @@ Marking const * Markings::marking(std::string const & langTag) const {
     if (i == m_marking.end()) {
         auto p = langTag.find_first_of("-_");
         if (p != std::string::npos) {
-            std::string lang{langTag, p};
+            std::string lang{langTag, 0, p};
             i = m_marking.find(lang);
         }
     }
@@ -27,5 +27,6 @@ Marking const * Markings::marking(std::string const & langTag) const {
     return (*i).second.get();
 }
 void Markings::marking(std::unique_ptr<Marking> && m) {
-    m_marking.emplace(std::move(std::make_pair(m->langTag(), std::move(m))));
+    std::string langTag = m->langTag();
+    m_marking.emplace(std::move(std::make_pair(langTag, std::move(m))));
 }

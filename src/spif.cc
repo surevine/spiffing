@@ -38,6 +38,7 @@ SOFTWARE.
 #include <spiffing/categorygroup.h>
 #include <spiffing/equivclass.h>
 #include <spiffing/equivcat.h>
+#include <tuple>
 
 using namespace Spiffing;
 
@@ -66,38 +67,37 @@ namespace {
 			std::string langTag; // Current tag
 			for (auto qual = holder->first_node("markingQualifier"); qual; qual = qual->next_sibling(
 					"markingQualifier")) {
-				if (auto lt_attr = qual->first_attribute("lang")) {
-					// TODO xml namespace.
-					std::string tag = lt_attr->value();
-					if (found) {
-						if (langTag != lt_attr->value()) {
-							continue; // Not yet.
-						}
-					} else {
-						if (langTags.find(tag) == langTags.end()) {
-							langTags.insert(tag);
-							found = true;
-							langTag = tag;
-						} else {
-							continue; // Done already.
-						}
-					}
-				} else {
-					// No language tag set.
-					if (found) {
-						if (langTag != "") {
-							continue;
-						}
-					} else {
-						if (langTags.find("") == langTags.end()) {
-							langTags.insert("");
-							found = true;
-						} else {
-							continue;
-						}
-					}
-				}
 				for (auto q = qual->first_node("qualifier"); q; q = q->next_sibling("qualifier")) {
+					if (auto lt_attr = q->first_attribute("xml:lang")) {
+						std::string tag = lt_attr->value();
+						if (found) {
+							if (langTag != lt_attr->value()) {
+								continue; // Not yet.
+							}
+						} else {
+							if (langTags.find(tag) == langTags.end()) {
+								langTags.insert(tag);
+								found = true;
+								langTag = tag;
+							} else {
+								continue; // Done already.
+							}
+						}
+					} else {
+						// No language tag set.
+						if (found) {
+							if (langTag != "") {
+								continue;
+							}
+						} else {
+							if (langTags.find("") == langTags.end()) {
+								langTags.insert("");
+								found = true;
+							} else {
+								continue;
+							}
+						}
+					}
 					auto qcode_a = q->first_attribute("qualifierCode");
 					auto txt_a = q->first_attribute("markingQualifier");
 					if (!txt_a) continue;
@@ -114,10 +114,32 @@ namespace {
 						}
 					}
 				}
+				// Second pass; backfill defaults.
+				if (found && ptr) {
+					for (auto q = qual->first_node("qualifier"); q; q = q->next_sibling("qualifier")) {
+						if (q->first_attribute("xml:lang")) {
+							// Skip over any lang-qualified qualifiers.
+							continue;
+						}
+						auto qcode_a = q->first_attribute("qualifierCode");
+						auto txt_a = q->first_attribute("markingQualifier");
+						if (!txt_a) continue;
+						std::string txt(txt_a->value(), txt_a->value_size());
+						if (qcode_a) {
+							std::string qcode(qcode_a->value(), qcode_a->value_size());
+							if (qcode == "prefix") {
+								if (ptr->prefix().empty()) ptr->prefix(txt);
+							} else if (qcode == "suffix") {
+								if (ptr->suffix().empty()) ptr->suffix(txt);
+							} else if (qcode == "separator") {
+								if (ptr->sep().empty()) ptr->sep(txt);
+							}
+						}
+					}
+				}
 			}
 			for (auto data = holder->first_node("markingData"); data; data = data->next_sibling("markingData")) {
-				if (auto lt_attr = data->first_attribute("lang")) {
-					// TODO xml namespace.
+				if (auto lt_attr = data->first_attribute("xml:lang")) {
 					std::string tag = lt_attr->value();
 					if (found) {
 						if (langTag != lt_attr->value()) {
@@ -150,12 +172,7 @@ namespace {
 				auto phrase_a = data->first_attribute("phrase");
 				if (!ptr) ptr = std::unique_ptr<Marking>{new Marking(langTag)};
 				int loc(0);
-				std::string phrase;
-				if (phrase_a) {
-					phrase = std::string(phrase_a->value(), phrase_a->value_size());
-				}
 				bool locset = false;
-				bool unknown = false;
 				for (auto code = data->first_node("code"); code; code = code->next_sibling("code")) {
 					std::string codename(code->value(), code->value_size());
 					if (codename == "noMarkingDisplay") {
@@ -174,22 +191,29 @@ namespace {
 					} else if (codename == "pageTopBottom") {
 						loc |= MarkingCode::pageTop | MarkingCode::pageBottom;
 						locset = true;
+					} else if (codename == "replacePolicy") {
+						loc |= MarkingCode::replacePolicy;
+					} else if (codename == "documentStart") {
+						loc |= MarkingCode::documentStart;
+						locset = true;
+					} else if (codename == "documentEnd") {
+						loc |= MarkingCode::documentEnd;
+						locset = true;
 					} else {
-						unknown = true;
+						throw std::runtime_error("Unknown marking code");
 					}
 				}
-				if (unknown) continue;
 				if (!locset) {
 					loc |= MarkingCode::pageBottom;
 				}
+				std::optional<std::string> phrase;
 				if (phrase_a) {
-					ptr->addPhrase(loc, std::string(phrase_a->value(), phrase_a->value_size()));
-				} else {
-					ptr->addPhrase(loc, "");
+					phrase.emplace(phrase_a->value(), phrase_a->value_size());
 				}
+				ptr->addPhrase(loc, phrase);
 			}
-			if (!markings) markings = std::unique_ptr<Markings>{new Markings()};
-			if (ptr) {
+			if (found) {
+				if (!markings) markings = std::unique_ptr<Markings>{new Markings()};
 				markings->marking(std::move(ptr));
 			} else {
 				return markings;
@@ -452,8 +476,11 @@ void Spif::parse(std::string const & s, Format fmt) {
 		size_t ordinal = 0;
 		for (auto tagSet = securityCategoryTagSets->first_node("securityCategoryTagSet"); tagSet; tagSet = tagSet->next_sibling("securityCategoryTagSet")) {
 			std::shared_ptr<TagSet> ts = parseTagSet(tagSet, ordinal, classNames, m_equivPolicies);
-			m_tagSets.insert(std::make_pair(ts->id(), ts));
-			m_tagSetsByName.insert(std::make_pair(ts->name(), ts));
+			bool inserted;
+			std::tie(std::ignore, inserted) = m_tagSets.insert(std::make_pair(ts->id(), ts));
+			if (!inserted) throw std::runtime_error("Duplicate TagSet id " + ts->id());
+			std::tie(std::ignore, inserted) = m_tagSetsByName.insert(std::make_pair(ts->name(), ts));
+			if (!inserted) throw std::runtime_error("Duplicate TagSet name " + ts->id());
 		}
 	}
 	m_markings = parseMarkings(node);
@@ -534,9 +561,32 @@ std::string Spif::displayMarking(Label const & label, std::string const & langTa
 	if (m_markings != nullptr) markingData = m_markings->marking(langTag);
 	if (markingData != nullptr) sep = markingData->sep();
 	if (sep.empty()) sep = " "; // Default.
+	// Print policy name.
+	Marking const * clsMarking = nullptr;
+	if (label.classification().hasMarkings()) clsMarking = label.classification().markings().marking(langTag);
+	if (markingData && markingData->replacePolicy(loc)) {
+		marking += markingData->policyPhrase(loc, m_name);
+	} else if (clsMarking && clsMarking->replacePolicy(loc)) {
+		marking += clsMarking->policyPhrase(loc, label.classification().name());
+	} else {
+		bool replacedPolicy = false;
+		for (auto & i : label.categories()) {
+			if (i->hasMarkings()) {
+				Marking const * m;
+				if ((m = i->markings().marking(langTag)) && m->replacePolicy(loc)) {
+					marking += m->policyPhrase(loc, i->name());
+					replacedPolicy = true;
+					break;
+				}
+			}
+		}
+		if (!replacedPolicy) {
+			marking += m_name;
+		}
+	}
 	if (!suppressClassName) {
-		Marking const * clsMarking;
-		if (label.classification().hasMarkings() && (clsMarking = label.classification().markings().marking(langTag))) {
+		if (!marking.empty()) marking += sep;
+		if (clsMarking) {
 			marking += clsMarking->phrase(loc, label.classification().name());
 		} else if (markingData != nullptr) {
 			marking += markingData->phrase(loc, label.classification().name());
@@ -563,17 +613,21 @@ std::string Spif::displayMarking(Spiffing::Clearance const & clearance, std::str
 	if (markingData != nullptr) sep = markingData->sep();
 	if (sep.empty()) sep = " "; // Default.
 	marking += "{";
+	std::set<std::shared_ptr<Classification>, ClassificationHierarchyCompare> classes;
 	for (auto cls : clearance.classifications()) {
 		auto clsit = m_classifications.find(cls);
 		if (clsit == m_classifications.end()) {
 			throw std::runtime_error("No classification (from clearance)");
 		}
+		classes.insert((*clsit).second);
+	}
+	for (auto const & cls : classes) {
 		if (!any) {
 			any = true;
 		} else {
 			marking += "|";
 		}
-		marking += (*clsit).second->name();
+		marking += cls->name();
 	}
 	if (!any) {
 		auto clsit = m_classifications.find(0);

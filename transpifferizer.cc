@@ -34,7 +34,7 @@ using namespace Spiffing;
 
 struct Opts {
     Opts(int argc, char *argv[])
-            : clearance(false), encrypt(false), input(nullptr), output(nullptr)
+            : clearance(false), encrypt(false), input(nullptr), output(nullptr), langTag()
     {
       for (int i = 1; i < argc; ++i) {
         if (argv[i][0] == '-') {
@@ -49,6 +49,10 @@ struct Opts {
               auto spif = Site::site().load(spif_file);
               std::cout << "Loaded SPIF " << spif->name() << std::endl;
             }
+                  break;
+            case 'l':
+              ++i;
+              langTag = argv[i];
                   break;
             case 'c':
               clearance = true;
@@ -82,17 +86,18 @@ struct Opts {
     std::string policy_out;
       const char * input;
       const char * output;
+    std::string langTag;
 };
 
 /*
  * Load and display a Label or Clearance.
  * They both support the same API, although are not related classes.
  */
-template<typename T> std::unique_ptr<T> load(std::string const & ifn) {
+template<typename T> std::unique_ptr<T> load(Opts & opt, std::string const & ifn) {
   std::ifstream label_file(ifn);
   std::string label_str{std::istreambuf_iterator<char>(label_file), std::istreambuf_iterator<char>()};
   std::unique_ptr<T> label(new T(label_str, Format::ANY));
-  std::cout << "Marking is '" << label->policy().displayMarking(*label) << "'" << std::endl;
+  std::cout << "Marking in " << opt.langTag << " is '" << label->policy().displayMarking(*label, opt.langTag) << "'" << std::endl;
   return label;
 }
 
@@ -137,14 +142,14 @@ template<typename T> void write(T const & label, const char * of) {
  */
 std::unique_ptr<Label> translate(Opts const & opt, std::unique_ptr<Label> const & label) {
   std::unique_ptr<Label> newl = label->encrypt(opt.policy_out);
-  std::cout << "Translated label has marking '" << newl->policy().displayMarking(*newl) << "'" << std::endl;
+  std::cout << "Translated label has marking '" << newl->policy().displayMarking(*newl, opt.langTag) << "'" << std::endl;
   return newl;
 }
 
 int main(int argc, char *argv[]) {
   try {
     if (argc <= 1) {
-      std::cout << "transpifferizer -p spif.xml [-e policyid] [-c] sioobj.ext  [output.ext]" << std::endl;
+      std::cout << "transpifferizer [-l langTag] -p spif.xml [-e policyid] [-c] sioobj.ext  [output.ext]" << std::endl;
       std::cout << "    ext can be 'xml', 'ber'." << std::endl;
       std::cout << "    sioobj can be label or clearance [with -c]." << std::endl;
       std::cout << "    only labels can be translated [with -e]." << std::endl;
@@ -158,10 +163,10 @@ int main(int argc, char *argv[]) {
     Opts opts{argc, argv};
 
     if (opts.clearance) {
-      std::unique_ptr<Clearance> clearance = std::move(load<Clearance>(opts.input));
+      std::unique_ptr<Clearance> clearance = std::move(load<Clearance>(opts, opts.input));
       write(*clearance, opts.output);
     } else {
-      std::unique_ptr<Label> label{load<Label>(opts.input)};
+      std::unique_ptr<Label> label{load<Label>(opts, opts.input)};
       if (opts.encrypt) {
         label = translate(opts, label);
       }

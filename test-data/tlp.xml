@@ -52,4 +52,7 @@
     <markingQualifier>
         <qualifier markingQualifier="TLP:" qualifierCode="prefix"/>
     </markingQualifier>
+    <markingData phrase="">
+        <code>replacePolicy</code>
+    </markingData>
 </SPIF>

@@ -37,20 +37,24 @@ bool test_step(std::size_t testno, rapidxml::xml_node<> * test) {
 		std::ifstream label_file(test->first_attribute("label")->value());
 		std::string label_str{std::istreambuf_iterator<char>(label_file), std::istreambuf_iterator<char>()};
 		std::unique_ptr<Label> label(new Label(label_str, Format::ANY));
+		std::string langTag;
 		if (test->first_attribute("valid")) {
 			bool result = label->policy().valid(*label);
 			bool expected = (test->first_attribute("valid")->value()[0] == 't');
 			if (result != expected) throw std::runtime_error(std::string("Validity failure: Expected ") + (expected ? "VALID" : "NOT valid"));
 		}
+		if (test->first_attribute("xml:lang")) {
+			langTag = test->first_attribute("xml:lang")->value();
+		}
 		if (test->first_attribute("label-marking")) {
-			std::string label_marking = label->policy().displayMarking(*label);
+			std::string label_marking = label->policy().displayMarking(*label, langTag);
 			if (label_marking != test->first_attribute("label-marking")->value()) throw std::runtime_error("Mismatching label marking: " + label_marking);
 		}
 		if (test->first_attribute("encrypt")) {
 			label = label->encrypt(test->first_attribute("encrypt")->value());
 		}
 		if (test->first_attribute("encrypt-marking")) {
-			std::string label_marking = label->policy().displayMarking(*label);
+			std::string label_marking = label->policy().displayMarking(*label, langTag);
 			if (label_marking != test->first_attribute("encrypt-marking")->value()) throw std::runtime_error("Mismatching encrypt-label marking: " + label_marking);
 		}
 		if (test->first_attribute("clearance")) {

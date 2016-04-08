@@ -14,7 +14,7 @@
         It also contains equivalent policy mappings to another two example policies.
     -->
     <defaultSecurityPolicyId name="Default" id="1.1"/>
-    <securityPolicyId name="UK DEMO" id="1.2.826.0.1.6726289.0.4"/>
+    <securityPolicyId name="UK" id="1.2.826.0.1.6726289.0.4"/>
     <equivalentPolicies>
         <equivalentPolicy name="TLPX" id="1.2.826.0.1.6726289.0.1"/>
         <equivalentPolicy name="TLP" id="1.2.826.0.1.6726289.0.2"/>
@@ -99,6 +99,6 @@
     </securityCategoryTagSets>
     <markingQualifier>
         <qualifier markingQualifier=" " qualifierCode="separator"/>
-        <qualifier markingQualifier="DEMO-UK " qualifierCode="prefix"/>
+        <qualifier markingQualifier="DEMO-" qualifierCode="prefix"/>
     </markingQualifier>
 </SPIF>

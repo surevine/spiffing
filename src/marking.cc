@@ -38,10 +38,23 @@ std::string const & Marking::phrase(MarkingCode loc, std::string const & p) cons
     if (i.first & loc) {
       if (i.first & MarkingCode::noNameDisplay) {
         return s_blank;
-      } else if (i.second.empty()) {
+      } else if ((i.first & MarkingCode::replacePolicy) || !i.second) {
         return p;
       } else {
-        return i.second;
+        return *(i.second);
+      }
+    }
+  }
+  return p;
+}
+
+std::string const & Marking::policyPhrase(MarkingCode loc, std::string const & p) const {
+  for (auto & i : m_phrase) {
+    if (i.first & (loc | MarkingCode::replacePolicy)) {
+      if (!i.second) {
+        return p;
+      } else {
+        return *(i.second);
       }
     }
   }
@@ -61,6 +74,19 @@ bool Marking::suppressClassName(MarkingCode loc) const {
   return false;
 }
 
-void Marking::addPhrase(int loc, std::string const & p) {
-  m_phrase.push_back(std::pair<int,std::string>(loc,p));
+bool Marking::replacePolicy(MarkingCode loc) const {
+  for (auto & i : m_phrase) {
+    if (i.first & loc) {
+      if (i.first & MarkingCode::replacePolicy) {
+        return true;
+      } else {
+        return false;
+      }
+    }
+  }
+  return false;
+}
+
+void Marking::addPhrase(int loc, std::optional<std::string> const & p) {
+  m_phrase.push_back(std::pair<int,std::optional<std::string>>(loc,p));
 }
