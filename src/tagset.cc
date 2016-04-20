@@ -41,6 +41,10 @@ void TagSet::addTag(std::shared_ptr<Tag> const & t) {
 
 void TagSet::addCategory(Tag const & tag, std::shared_ptr<Category> const & cat) {
 	m_cats[std::make_pair(tag.tagType(), cat->lacv())] = cat;
+	TagType t = tag.tagType();
+	if (t == TagType::enumeratedPermissive) t = TagType::permissive;
+	else if (t == TagType::enumeratedRestrictive) t = TagType::restrictive;
+	m_catnames[std::make_pair(t, cat->name())] = cat;
 }
 
 std::set<CategoryRef> TagSet::categories(TagType tt) const {

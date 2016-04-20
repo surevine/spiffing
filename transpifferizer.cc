@@ -116,12 +116,17 @@ template<typename T> void write(T const & label, const char * of) {
     std::cout << "Extension is " << ext << std::endl;
     if (ext == "xml") {
       outformat = Format::XML;
+    } else if (ext == "nato") {
+      outformat = Format::NATO;
     }
   }
   std::cout << "Writing " << filename;
   switch(outformat) {
   case Format::XML:
     std::cout << " as XML." << std::endl;
+    break;
+  case Format::NATO:
+    std::cout << " as NATO (S'4774)." << std::endl;
     break;
   case Format::BER:
     std::cout << " as DER." << std::endl;
@@ -150,7 +155,7 @@ int main(int argc, char *argv[]) {
   try {
     if (argc <= 1) {
       std::cout << "transpifferizer [-l langTag] -p spif.xml [-e policyid] [-c] sioobj.ext  [output.ext]" << std::endl;
-      std::cout << "    ext can be 'xml', 'ber'." << std::endl;
+      std::cout << "    ext can be 'nato', 'xml', 'ber'." << std::endl;
       std::cout << "    sioobj can be label or clearance [with -c]." << std::endl;
       std::cout << "    only labels can be translated [with -e]." << std::endl;
       return 0;

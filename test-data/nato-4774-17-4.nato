@@ -1,0 +1,16 @@
+<originatorConfidentialityLabel xmlns="urn:nato:stanag:4774:confidentialitymetadatalabel:1:0">
+<ConfidentialityInformation>
+<PolicyIdentifier>NATO</PolicyIdentifier>
+<Classification>RESTRICTED</Classification>
+<Category TagName="Context" Type="PERMISSIVE">
+<GenericValue>NATO</GenericValue>
+<GenericValue>Releasable</GenericValue>
+</Category>
+<Category TagName="Releasable To" Type="PERMISSIVE">
+<GenericValue>NATO</GenericValue>
+<GenericValue>JPN</GenericValue>
+<GenericValue>CHE</GenericValue>
+<GenericValue>UKR</GenericValue>
+</Category>
+</ConfidentialityInformation>
+</originatorConfidentialityLabel>

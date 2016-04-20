@@ -78,6 +78,11 @@ namespace Spiffing {
 			if (i == m_classifications.end()) throw std::runtime_error("Unknown classification");
 			return (*i).second;
 		}
+		std::shared_ptr<Classification> const & classificationLookup(std::string const & cls) const {
+			auto i = m_classnames.find(cls);
+			if (i == m_classnames.end()) throw std::runtime_error("Unknown classification");
+			return (*i).second;
+		}
 		void encrypt(Label &) const;
 
 	private:
@@ -86,6 +91,7 @@ namespace Spiffing {
 		std::string m_privilegeId; /* category syntax used in ASN clearances */
 		std::string m_rbacId;      /* category syntax used in ASN labels */
 		std::map<lacv_t,std::shared_ptr<Classification>> m_classifications;
+		std::map<std::string,std::shared_ptr<Classification>> m_classnames;
 		std::map<std::string /* OID */, std::shared_ptr<TagSet>> m_tagSets;
 		std::map<std::string /* Name */, std::shared_ptr<TagSet>> m_tagSetsByName;
 		std::map<std::string /* Name */, std::string /* OID */> m_equivPolicies;

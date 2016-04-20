@@ -57,8 +57,8 @@ void Label::parse(std::string const & label, Format fmt) {
 	case Format::BER:
 		parse_ber(label);
 		break;
-  case Format::XML:
-    parse_xml(label);
+  	case Format::XML:
+    	parse_xml(label);
 		break;
 	case Format::ANY:
 		parse_any(label);
@@ -74,7 +74,10 @@ void Label::write(Format fmt, std::string & output) const {
 		write_ber(output);
 		break;
 	case Format::XML:
-		write_xml(output);
+		write_xml_debug(output);
+		break;
+	case Format::NATO:
+		write_xml_nato(output);
 		break;
 	case Format::ANY:
 		throw std::runtime_error("Unkown format");
@@ -122,42 +125,61 @@ void Label::parse_ber(std::string const & label) {
 }
 
 void Label::parse_xml(std::string const & label) {
-    using namespace rapidxml;
-    std::string tmp{label};
-    xml_document<> doc;
-		doc.parse<0>(const_cast<char *>(tmp.c_str()));
-    auto root = doc.first_node();
-    if (std::string("label") != root->name()) {
-        throw std::runtime_error("Not a label");
-    }
-    if (root->xmlns() == nullptr ||
-        std::string("http://surevine.com/xmlns/spiffy") != root->xmlns()) {
-        throw std::runtime_error("XML Namespace of label is unknown");
-    }
-    // Get security policy.
-    auto securityPolicy = root->first_node("policy");
-    if (securityPolicy) {
-      auto idattr = securityPolicy->first_attribute("id");
-      if (idattr) m_policy_id = idattr->value();
+	using namespace rapidxml;
+	std::string tmp{label};
+	xml_document<> doc;
+	doc.parse<parse_fastest>(const_cast<char *>(tmp.c_str()));
+	auto root = doc.first_node();
+	if (root->xmlns() == nullptr) {
+		throw std::runtime_error("XML Namespace of label is unknown");
+	}
+	std::string xmlns{root->xmlns(), root->xmlns_size()};
+	if (xmlns == "http://surevine.com/xmlns/spiffy") {
+		parse_xml_debug(label);
+	} else if (xmlns == "urn:nato:stanag:4774:confidentialitymetadatalabel:1:0") {
+		parse_xml_nato(label);
+	} else {
+		throw std::runtime_error("Namespace not found");
+	}
+}
+
+void Label::parse_xml_debug(std::string const & label) {
+	using namespace rapidxml;
+	std::string tmp{label};
+	xml_document<> doc;
+	doc.parse<0>(const_cast<char *>(tmp.c_str()));
+	auto root = doc.first_node();
+	if (std::string("label") != root->name()) {
+		throw std::runtime_error("Not a label");
+	}
+	if (root->xmlns() == nullptr ||
+		std::string("http://surevine.com/xmlns/spiffy") != root->xmlns()) {
+		throw std::runtime_error("XML Namespace of label is unknown");
+	}
+	// Get security policy.
+	auto securityPolicy = root->first_node("policy");
+	if (securityPolicy) {
+		auto idattr = securityPolicy->first_attribute("id");
+		if (idattr) m_policy_id = idattr->value();
 		m_policy = Site::site().spif(m_policy_id);
 		if (m_policy->policy_id() != m_policy_id) {
 			throw std::runtime_error("Policy mismatch: " + m_policy_id);
 		}
 	} else throw std::runtime_error("No policy in label");
 	// Get classification.
-    auto securityClassification = root->first_node("classification");
-    if (securityClassification) {
-        auto lacvattr = securityClassification->first_attribute("lacv");
+	auto securityClassification = root->first_node("classification");
+	if (securityClassification) {
+		auto lacvattr = securityClassification->first_attribute("lacv");
 		if (lacvattr) {
 			lacv_t lacv = std::stoull(lacvattr->value());
 			m_class = m_policy->classificationLookup(lacv);
 		}
-    }
-    // Find tagsets.
-    for (auto tag = root->first_node("tag"); tag; tag = tag->next_sibling("tag")) {
-        auto typeattr = tag->first_attribute("type");
-        if (!typeattr) throw std::runtime_error("tag without type");
-        std::string tag_type = typeattr->value();
+	}
+	// Find tagsets.
+	for (auto tag = root->first_node("tag"); tag; tag = tag->next_sibling("tag")) {
+		auto typeattr = tag->first_attribute("type");
+		if (!typeattr) throw std::runtime_error("tag without type");
+		std::string tag_type = typeattr->value();
 		TagType type;
 		if (tag_type == "restrictive") {
 			type = TagType::restrictive;
@@ -178,7 +200,69 @@ void Label::parse_xml(std::string const & label) {
 		Lacv lacv = Lacv::parse(std::string(lacvattr->value(), lacvattr->value_size()));
 		auto cat = m_policy->tagSetLookup(id)->categoryLookup(type, lacv);
 		addCategory(cat);
-    }
+	}
+}
+
+void Label::parse_xml_nato(std::string const & label) {
+	using namespace rapidxml;
+	std::string tmp{label};
+	xml_document<> doc;
+	doc.parse<0>(const_cast<char *>(tmp.c_str()));
+	auto org = doc.first_node();
+	if (std::string("originatorConfidentialityLabel") != org->name()) {
+		throw std::runtime_error("Not a NATO originator label");
+	}
+	if (org->xmlns() == nullptr ||
+		std::string("urn:nato:stanag:4774:confidentialitymetadatalabel:1:0") != org->xmlns()) {
+		throw std::runtime_error("XML Namespace of label is unknown");
+	}
+	auto info = org->first_node("ConfidentialityInformation");
+	if (!info) {
+		throw std::runtime_error("Missing confidentiality information");
+	}
+	// Get security policy.
+	auto securityPolicy = info->first_node("PolicyIdentifier");
+	if (securityPolicy) {
+		auto idattr = securityPolicy->first_attribute("URI");
+		if (idattr) m_policy_id = idattr->value();
+		if (m_policy_id.find("urn:oid:") == 0) {
+			m_policy_id = m_policy_id.substr(8);
+		} else {
+			m_policy_id = "";
+		}
+		m_policy = Site::site().spif_by_name(securityPolicy->value());
+		if (m_policy_id.empty()) m_policy_id = m_policy->policy_id();
+		if (m_policy->policy_id() != m_policy_id) {
+			throw std::runtime_error("Policy mismatch: " + m_policy_id);
+		}
+	} else throw std::runtime_error("No policy in label");
+	// Get classification.
+	auto securityClassification = info->first_node("Classification");
+	if (securityClassification) {
+		m_class = m_policy->classificationLookup(securityClassification->value());
+	}
+	// Find tagsets.
+	for (auto tag = info->first_node("Category"); tag; tag = tag->next_sibling("Category")) {
+		auto typeattr = tag->first_attribute("Type");
+		if (!typeattr) throw std::runtime_error("tag without Type");
+		std::string tag_type = typeattr->value();
+		TagType type;
+		if (tag_type == "RESTRICTIVE") {
+			type = TagType::restrictive;
+		} else if (tag_type == "PERMISSIVE") {
+			type = TagType::permissive;
+		} else if (tag_type == "INFORMATIVE") {
+			type = TagType::informative;
+		} else throw std::runtime_error("unsupported tag type " + tag_type);
+		auto tagname_a = tag->first_attribute("TagName");
+		if (!tagname_a) throw std::runtime_error("Category without TagName");
+		std::string tagname = tagname_a->value();
+		auto tagSet = m_policy->tagSetLookupByName(tagname);
+		for (auto valtag = tag->first_node("GenericValue"); valtag; valtag = valtag->next_sibling("GenericValue")) {
+			auto cat = tagSet->categoryLookup(type, valtag->value());
+			addCategory(cat);
+		}
+	}
 }
 
 void Label::parse_any(std::string const & label) {
@@ -192,7 +276,7 @@ void Label::parse_any(std::string const & label) {
 	parse_xml(label);
 }
 
-void Label::write_xml(std::string & output) const {
+void Label::write_xml_debug(std::string & output) const {
 	using namespace rapidxml;
 	// Do something sensible.
 	xml_document<> doc;
@@ -237,6 +321,63 @@ void Label::write_xml(std::string & output) const {
 	}
 	// Actual encoding
 	doc.append_node(root);
+	rapidxml::print(std::back_inserter(output), doc, rapidxml::print_no_indenting);
+}
+
+void Label::write_xml_nato(std::string & output) const {
+	using namespace rapidxml;
+	// Do something sensible.
+	xml_document<> doc;
+	auto wrapper = doc.allocate_node(node_element, "originatorConfidentialityLabel");
+	wrapper->append_attribute(doc.allocate_attribute("xmlns", "urn:nato:stanag:4774:confidentialitymetadatalabel:1:0"));
+	auto root = doc.allocate_node(node_element, "ConfidentialityInformation");
+	auto policy = doc.allocate_node(node_element, "PolicyIdentifier");
+	std::string policy_uri{"urn:oid:" + m_policy_id};
+	policy->append_attribute(doc.allocate_attribute("URI", policy_uri.c_str()));
+	policy->value(m_policy->name().c_str());
+	root->append_node(policy);
+	auto classn = doc.allocate_node(node_element, "Classification");
+	classn->value(m_class->name().c_str());
+	root->append_node(classn);
+	// Category Encoding
+	std::string tagset_id;
+	TagType tagType = TagType::informative; // Dummy
+	xml_node<> * tag = nullptr;
+	for (auto const & cat : m_cats) {
+		if (cat->tag().tagSet().id() != tagset_id
+				|| cat->tag().tagType() != tagType) {
+			tagset_id = cat->tag().tagSet().id();
+			tagType = cat->tag().tagType();
+			tag = doc.allocate_node(node_element, "Category");
+			const char *p = nullptr;
+			switch (cat->tag().tagType()) {
+				case TagType::enumeratedRestrictive:
+				case TagType::restrictive:
+					p = "RESTRICTIVE";
+					break;
+				case TagType::enumeratedPermissive:
+				case TagType::permissive:
+					p = "PERMISSIVE";
+					break;
+				case TagType::informative:
+					p = "INFORMATIVE";
+					break;
+				default:
+					throw std::runtime_error("Tagtype unimplemented!");
+			}
+			tag->append_attribute(doc.allocate_attribute("Type", p));
+			// Note: needs a temp string.
+			// tag->append_attribute(doc.allocate_attribute("URI", "urn:oid:" + cat->tag().tagSet().id().c_str()));
+			tag->append_attribute(doc.allocate_attribute("TagName", cat->tag().tagSet().name().c_str()));
+			root->append_node(tag);
+		}
+		auto catval = doc.allocate_node(node_element, "GenericValue");
+		catval->value(cat->name().c_str());
+		tag->append_node(catval);
+	}
+	// Actual encoding
+	wrapper->append_node(root);
+	doc.append_node(wrapper);
 	rapidxml::print(std::back_inserter(output), doc, rapidxml::print_no_indenting);
 }
 

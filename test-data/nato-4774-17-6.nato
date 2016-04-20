@@ -1,0 +1,15 @@
+<originatorConfidentialityLabel xmlns="urn:nato:stanag:4774:confidentialitymetadatalabel:1:0">
+<ConfidentialityInformation>
+<PolicyIdentifier>NATO</PolicyIdentifier>
+<Classification>CONFIDENTIAL</Classification>
+<Category TagName="Context" Type="PERMISSIVE">
+<GenericValue>KFOR</GenericValue>
+</Category>
+<Category TagName="Only" Type="PERMISSIVE">
+<GenericValue>NATO</GenericValue>
+<GenericValue>IRL</GenericValue>
+<GenericValue>SWE</GenericValue>
+<GenericValue>UKR</GenericValue>
+</Category>
+</ConfidentialityInformation>
+</originatorConfidentialityLabel>

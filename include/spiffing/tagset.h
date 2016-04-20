@@ -51,6 +51,11 @@ namespace Spiffing {
           if (i == m_cats.end()) throw std::runtime_error("Cannot find the tagType/LACV");
           return (*i).second;
         }
+        std::shared_ptr<Category> const & categoryLookup(TagType type, std::string const & name) const {
+            auto i = m_catnames.find(std::make_pair(type, name));
+            if (i == m_catnames.end()) throw std::runtime_error("Cannot find the tagType/name: " + name);
+            return (*i).second;
+        }
 
         void addCategory(Tag const &, std::shared_ptr<Category> const &);
         std::set<CategoryRef> categories(TagType type) const;
@@ -69,6 +74,7 @@ namespace Spiffing {
         std::string m_name;
         std::map<std::string,std::shared_ptr<Tag>> m_tags;
         std::map<std::pair<TagType, Lacv>, std::shared_ptr<Category>> m_cats;
+        std::map<std::pair<TagType, std::string>, std::shared_ptr<Category>> m_catnames;
         std::unique_ptr<Markings> m_markings;
     };
 }

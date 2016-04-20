@@ -31,7 +31,9 @@ namespace Spiffing {
 	enum class Format {
 		BER,		// X.841 syntax.
 		DER = BER,		// Equal to BER.
-		XML,		// Namespaced XML.
+		XML,		// Namespaced XML, "spiffy" debug format by default.
+		NATO,		// ADaTP 4774 - Confidentiality Label
+		// MBM,		// ADaTP 4778 - Metadata Binding Mechanism
 		ANY			// Try to guess.
 	};
   enum class TagType {
@@ -98,5 +100,7 @@ namespace Spiffing {
 		static std::string const NATO_Informative;
     };
 }
+
+#define MAYBE_NULL(x) if (!x)
 
 #endif

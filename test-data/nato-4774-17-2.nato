@@ -1,0 +1,9 @@
+<originatorConfidentialityLabel xmlns="urn:nato:stanag:4774:confidentialitymetadatalabel:1:0">
+<ConfidentialityInformation>
+<PolicyIdentifier>NATO</PolicyIdentifier>
+<Classification>UNCLASSIFIED</Classification>
+<Category TagName="Context" Type="PERMISSIVE">
+<GenericValue>NATO</GenericValue>
+</Category>
+</ConfidentialityInformation>
+</originatorConfidentialityLabel>

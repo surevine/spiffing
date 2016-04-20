@@ -60,10 +60,13 @@ namespace Spiffing {
 	private:
 		void parse_ber(std::string const & label);
 		void parse_xml(std::string const & label);
+		void parse_xml_debug(std::string const & label);
+		void parse_xml_nato(std::string const & label);
 		void parse_any(std::string const & label);
 
 		void write_ber(std::string &) const;
-		void write_xml(std::string &) const;
+		void write_xml_debug(std::string &) const;
+		void write_xml_nato(std::string &) const;
 
 		std::shared_ptr<Spif> m_policy;
 		std::string m_policy_id;

@@ -1,0 +1,16 @@
+<originatorConfidentialityLabel xmlns="urn:nato:stanag:4774:confidentialitymetadatalabel:1:0">
+<ConfidentialityInformation>
+<PolicyIdentifier URL="urn:oid:1.3.26.1.3.1">NATO</PolicyIdentifier>
+<Classification>UNCLASSIFIED</Classification>
+<Category TagName="Context" Type="PERMISSIVE">
+<GenericValue>NATO</GenericValue>
+<GenericValue>Releasable</GenericValue>
+</Category>
+<Category TagName="Releasable To" Type="PERMISSIVE">
+<GenericValue>NATO</GenericValue>
+<GenericValue>ISAF</GenericValue>
+<GenericValue>KFOR</GenericValue>
+<GenericValue>RESOLUTE SUPPORT</GenericValue>
+</Category>
+</ConfidentialityInformation>
+</originatorConfidentialityLabel>

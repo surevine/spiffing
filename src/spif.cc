@@ -459,14 +459,13 @@ void Spif::parse(std::string const & s, Format fmt) {
 		}
 	}
 	auto securityClassifications = node->first_node("securityClassifications");
-	std::map<std::string, std::shared_ptr<Classification>> classNames;
 	for (auto classn = securityClassifications->first_node("securityClassification"); classn; classn = classn->next_sibling("securityClassification")) {
 		std::shared_ptr<Classification> c = parseClassification(classn, m_equivPolicies);
 		auto ins = m_classifications.insert(std::make_pair(c->lacv(), c));
 		if (!ins.second) {
 			throw std::runtime_error("Duplicate classification " + c->name());
 		}
-		auto ins2 = classNames.insert(std::make_pair(c->name(), c));
+		auto ins2 = m_classnames.insert(std::make_pair(c->name(), c));
 		if (!ins2.second) {
 			throw std::runtime_error("Duplicate classification name " + c->name());
 		}
@@ -475,7 +474,7 @@ void Spif::parse(std::string const & s, Format fmt) {
 	if (securityCategoryTagSets) {
 		size_t ordinal = 0;
 		for (auto tagSet = securityCategoryTagSets->first_node("securityCategoryTagSet"); tagSet; tagSet = tagSet->next_sibling("securityCategoryTagSet")) {
-			std::shared_ptr<TagSet> ts = parseTagSet(tagSet, ordinal, classNames, m_equivPolicies);
+			std::shared_ptr<TagSet> ts = parseTagSet(tagSet, ordinal, m_classnames, m_equivPolicies);
 			bool inserted;
 			std::tie(std::ignore, inserted) = m_tagSets.insert(std::make_pair(ts->id(), ts));
 			if (!inserted) throw std::runtime_error("Duplicate TagSet id " + ts->id());
