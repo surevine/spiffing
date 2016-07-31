@@ -1,7 +1,7 @@
 checkout:
   post:
-    make submodules
+    - make submodules
 
 build:
   pre:
-    make pre-build
+    - make pre-build
