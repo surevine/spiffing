@@ -373,6 +373,7 @@ void Label::write_xml_nato(std::string & output) const {
 		}
 		auto catval = doc.allocate_node(node_element, "GenericValue");
 		catval->value(cat->name().c_str());
+        assert(tag);
 		tag->append_node(catval);
 	}
 	// Actual encoding

@@ -77,13 +77,17 @@ namespace {
     std::size_t sz = bitString.size;
     if (sz == 0) {
       sz = 4;
-      bitString.buf = (unsigned char *) calloc(sizeof(unsigned char), sz);
+      unsigned char * tmp = (unsigned char *) calloc(sizeof(unsigned char), sz);
+      if (!tmp) throw std::bad_alloc();
+      bitString.buf = tmp;
       bitString.size = sz;
     }
     if (sz <= bit / 8) {
       std::size_t old_sz = sz;
       while (sz <= bit / 8) sz += 4;
-      bitString.buf = (unsigned char *)realloc(bitString.buf, sz);
+      unsigned char * tmp = (unsigned char *)realloc(bitString.buf, sz);
+      if (!tmp) throw std::bad_alloc();
+      bitString.buf = tmp;
       memset(bitString.buf + old_sz, 0, sz - old_sz);
       bitString.size = sz;
     }
@@ -96,12 +100,16 @@ namespace {
     std::size_t sz = atts.size;
     if (sz == 0) {
       atts.size = sz = 4;
-      atts.array = (INTEGER_t **)calloc(sz * sizeof(INTEGER_t *), sz);
+      auto tmp = (INTEGER_t **)calloc(sz * sizeof(INTEGER_t *), sz);
+      if (!tmp) throw std::bad_alloc();
+      atts.array = tmp;
     }
     if (sz <= (size_t)atts.count) {
       std::size_t old_sz = sz;
       while (sz <= (size_t)atts.count) sz += 4;
-      atts.array = (INTEGER_t **)realloc(atts.array, sz * sizeof(INTEGER_t *));
+      auto tmp = (INTEGER_t **)realloc(atts.array, sz * sizeof(INTEGER_t *));
+      if (!tmp) throw std::bad_alloc();
+      atts.array = tmp;
       memset(atts.array + old_sz, 0, (sz - old_sz) * sizeof(INTEGER_t *));
       atts.size = sz;
     }
@@ -456,6 +464,7 @@ void Internal::parse_missi_cat(Label & label, ANY * any) {
               break;
         case SecurityTag_PR_restrictivebitMap:
           restrictive = true;
+              // Fallthrough
         case SecurityTag_PR_permissivebitMap: {
           TagType tagType = (restrictive ? TagType::restrictive : TagType::permissive);
           BIT_STRING_t &bits = (restrictive ? tag->choice.restrictivebitMap.attributeFlags
@@ -473,7 +482,10 @@ void Internal::parse_missi_cat(Label & label, ANY * any) {
               break;
         case SecurityTag_PR_freeFormField: {
           Asn<TagType7Data> asn_t7(&asn_DEF_TagType7Data);
-          ANY_to_type((ANY_t*)&tag->choice.freeFormField, &asn_DEF_TagType7Data, asn_t7.addr());
+          auto r = ANY_to_type((ANY_t*)&tag->choice.freeFormField, &asn_DEF_TagType7Data, asn_t7.addr());
+          if (r != RC_OK) {
+            throw std::runtime_error("Parse failure of MISSI SecurityTag");
+          }
           TagType tagType = TagType::informative;
           if (asn_t7->present == TagType7Data_PR_bitSetAttributes) {
             BIT_STRING_t &bits = asn_t7->choice.bitSetAttributes;
@@ -535,6 +547,7 @@ void Internal::parse_sslp_cat(Clearance & clearance, ANY * any) {
               break;
         case SecurityTagPrivilege_PR_restrictivebitMap:
           restrictive = true;
+              // Fallthrough
         case SecurityTagPrivilege_PR_permissivebitMap: {
           TagType tagType = (restrictive ? TagType::restrictive : TagType::permissive);
           BIT_STRING_t &bits = (restrictive ? tag->choice.restrictivebitMap

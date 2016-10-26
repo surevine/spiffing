@@ -131,8 +131,6 @@ template<typename T> void write(T const & label, const char * of) {
   case Format::BER:
     std::cout << " as DER." << std::endl;
     break;
-  case Format::ANY:
-    ;
   }
   std::string output;
   label.write(outformat, output);

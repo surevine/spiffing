@@ -69,8 +69,8 @@ namespace Spiffing {
         }
     private:
         void parse(std::size_t sz);
-        mutable std::size_t m_sz;
-        mutable bool m_sz_valid;
+        mutable std::size_t m_sz = 0;
+        mutable bool m_sz_valid = false;
         std::string m_name;
         mutable std::string m_str;
     };
