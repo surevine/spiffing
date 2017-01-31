@@ -1,7 +1,9 @@
 EXECUTOR?=
 
-INPUTS=$(wildcard food-label*.xml) $(wildcard food-clearance*.xml) $(nato-clearance*.nato)
-OUTPUTS=$(INPUTS:%.xml=%-nato-out2.ber) $(INPUTS:%.nato=%-nato-out2.ber) $(INPUTS:%.xml=%-nato-out2.nato) $(INPUTS:%.xml=%-missi-out2.ber)
+INPUTS=$(wildcard food-label*.xml) $(wildcard food-clearance*.xml)
+NATO_INPUTS=$(wildcard nato-clearance*.nato)
+OUTPUTS=$(INPUTS:%.xml=%-nato-out2.ber) $(INPUTS:%.xml=%-nato-out2.nato) $(INPUTS:%.xml=%-missi-out2.ber)
+OUTPUTS+= $(NATO_INPUTS:%.nato=%-nato-out2.ber)
 
 all:
 	$(EXECUTOR) ../test tests.xml
