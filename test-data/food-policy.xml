@@ -78,7 +78,13 @@
 			<securityCategoryTag name="Packaging Materials" tagType="tagType7" tag7Encoding="securityAttributes">
 				<tagCategory name="Plastic" lacv='0'/>
 			</securityCategoryTag>
-		</securityCategiryTagSet>
+		</securityCategoryTagSet>
+		<securityCategoryTagSet name="Something" id="1.2.826.0.1.6726289.0.0.5">
+			<securityCategoryTag name="Things" tagType="enumerated" enumType="permissive">
+				<tagCategory name="Thing One" lacv='23'/>
+				<tagCategory name="Thing Two" lacv='42'/>
+			</securityCategoryTag>
+		</securityCategoryTagSet>
 	</securityCategoryTagSets>
 	<markingQualifier code='pageBottom'>
 		<qualifier markingQualifier="[ " qualifierCode="prefix"/>

@@ -26,6 +26,7 @@ SOFTWARE.
 #include <spiffing/categorygroup.h>
 #include <spiffing/markings.h>
 #include <spiffing/categorydata.h>
+#include <spiffing/label.h>
 
 using namespace Spiffing;
 
@@ -34,19 +35,20 @@ CategoryGroup::CategoryGroup(OperationType opType) : m_opType(opType) {}
 bool CategoryGroup::matches(Label const & l) const {
   bool found{false};
   for (auto const & cd : m_categoryData) {
-    if (cd->matches(l)) {
-      switch (m_opType) {
-      case OperationType::onlyOne:
-        if (found) return false;
-        break;
-      case OperationType::oneOrMore:
-        return true;
-      case OperationType::all:
-        ;
+    for (auto const & cat : cd->cats()) {
+      if (l.hasCategory(cat)) {
+        switch (m_opType) {
+          case OperationType::onlyOne:
+            if (found) return false;
+                break;
+          case OperationType::oneOrMore:
+            return true;
+          case OperationType::all:;
+        }
+        found = true;
+      } else if (m_opType == OperationType::all) {
+        return false;
       }
-      found = true;
-    } else if (m_opType == OperationType::all) {
-      return false;
     }
   }
   return found;
