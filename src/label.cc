@@ -132,7 +132,7 @@ void Label::parse_xml(std::string const & label) {
 	xml_document<> doc;
 	doc.parse<parse_fastest>(const_cast<char *>(tmp.c_str()));
 	auto root = doc.first_node();
-	if (root->xmlns() == nullptr) {
+	if (root == nullptr || root->xmlns() == nullptr) {
 		throw std::runtime_error("XML Namespace of label is unknown");
 	}
 	std::string xmlns{root->xmlns(), root->xmlns_size()};
@@ -209,7 +209,7 @@ void Label::parse_xml_nato(std::string const & label) {
 	using namespace rapidxml;
 	std::string tmp{label};
 	xml_document<> doc;
-	doc.parse<0>(const_cast<char *>(tmp.c_str()));
+	doc.parse<rapidxml::parse_validate_closing_tags>(const_cast<char *>(tmp.c_str()));
 	auto org = doc.first_node();
 	if (std::string("originatorConfidentialityLabel") != org->name()) {
 		throw std::runtime_error("Not a NATO originator label");
@@ -273,6 +273,10 @@ void Label::parse_any(std::string const & label) {
 	try {
 		rapidxml::xml_document<> doc;
 		doc.parse<rapidxml::parse_fastest>(const_cast<char *>(label.c_str()));
+        if (doc.first_node() == nullptr) {
+            parse_ber(label);
+            return;
+        }
 	} catch (rapidxml::parse_error & e) {
 		parse_ber(label);
 		return;
