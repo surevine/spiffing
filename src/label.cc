@@ -103,7 +103,9 @@ void Label::parse_ber(std::string const & label) {
 	} else throw std::runtime_error("No policy in label");
 	if (asn_label->security_classification) {
 		m_class = m_policy->classificationLookup(*asn_label->security_classification);
-	}
+	} else {
+        m_class = m_policy->classificationLookup(0);
+    }
 	if (asn_label->security_categories) {
 		for (size_t i{0}; i != (size_t)asn_label->security_categories->list.count; ++i) {
 			std::string tagType = Internal::oid2str(&asn_label->security_categories->list.array[i]->type);
@@ -240,7 +242,9 @@ void Label::parse_xml_nato(std::string const & label) {
 	auto securityClassification = info->first_node("Classification");
 	if (securityClassification) {
 		m_class = m_policy->classificationLookup(securityClassification->value());
-	}
+	} else {
+        m_class = m_policy->classificationLookup(0);
+    }
 	// Find tagsets.
 	for (auto tag = info->first_node("Category"); tag; tag = tag->next_sibling("Category")) {
 		auto typeattr = tag->first_attribute("Type");
