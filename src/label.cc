@@ -64,7 +64,7 @@ void Label::parse(std::string const & label, Format fmt) {
 		parse_any(label);
 		break;
 	default:
-		throw std::runtime_error("Unkown format");
+		throw std::runtime_error("Unknown format");
 	}
 }
 
@@ -80,7 +80,7 @@ void Label::write(Format fmt, std::string & output) const {
 		write_xml_nato(output);
 		break;
 	case Format::ANY:
-		throw std::runtime_error("Unkown format");
+		throw std::runtime_error("Unknown format");
 	}
 }
 
