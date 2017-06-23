@@ -85,7 +85,11 @@ void Label::write(Format fmt, std::string & output) const {
 }
 
 void Label::addCategory(std::shared_ptr<Category> const & cat) {
-	m_cats.insert(cat);
+	m_cats.emplace(cat);
+}
+
+void Label::addCategory(CategoryRef const & cat) {
+	m_cats.emplace(cat);
 }
 
 void Label::parse_ber(std::string const & label) {
@@ -417,4 +421,51 @@ std::unique_ptr<Label> Label::encrypt(std::string policy_id) const {
 	}
 	m_policy->encrypt(*newl);
 	return newl;
+}
+
+std::unique_ptr<Label> Label::combine(Label const & other) const {
+    if (other.m_policy_id != m_policy_id) throw std::runtime_error("Cannot combine labels of different policies");
+    auto classn = std::max(m_class->lacv(), other.m_class->lacv());
+    std::unique_ptr<Label> newl(new Label(m_policy, classn));
+    // Start by loading all cats sensibly.
+    for (auto const & cat : m_cats) {
+        switch (cat->tag().tagType()) {
+            case TagType::enumeratedPermissive:
+            case TagType::permissive:
+                // Permissive tags. UK,FR EYES ONLY + UK,DE EYES ONLY => UK EYES ONLY.
+                if (other.hasCategory(cat)) {
+                    newl->addCategory(cat);
+                }
+                break;
+            case TagType::enumeratedRestrictive:
+            case TagType::restrictive:
+                // Restrictive tags, want all of them.
+                newl->addCategory(cat);
+                break;
+            case TagType::informative:
+                // Informative. Probably just add.
+                newl->addCategory(cat);
+        }
+    }
+    for (auto const & cat : other.m_cats) {
+        switch (cat->tag().tagType()) {
+            case TagType::enumeratedPermissive:
+            case TagType::permissive:
+                // Permissive tags. UK,FR EYES ONLY + UK,DE EYES ONLY => UK EYES ONLY.
+                if (hasCategory(cat)) {
+                    newl->addCategory(cat);
+                }
+                break;
+            case TagType::enumeratedRestrictive:
+            case TagType::restrictive:
+                // Restrictive tags, want all of them.
+                newl->addCategory(cat);
+                break;
+            case TagType::informative:
+                // Informative. Probably just add.
+                newl->addCategory(cat);
+        }
+    }
+    m_policy->assertValid(*newl);
+    return newl;
 }

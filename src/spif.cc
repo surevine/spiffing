@@ -697,6 +697,10 @@ bool Spif::valid(Label const & label) const {
 	return true;
 }
 
+void Spif::assertValid(Label const &l) const {
+	if (!valid(l)) throw std::runtime_error("Label is not valid");
+}
+
 void Spif::encrypt(Label & label) const {
 	auto end = m_equivReqs.upper_bound(label.policy_id());
 	for (auto i = m_equivReqs.lower_bound(label.policy_id()); i != end; ++i) {

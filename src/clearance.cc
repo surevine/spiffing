@@ -44,7 +44,15 @@ Spiffing::Clearance::Clearance(std::string const & clearance, Spiffing::Format f
 	parse(clearance, fmt);
 }
 
+Spiffing::Clearance::Clearance(std::shared_ptr<Spif> const & policy)
+		: m_policy(policy), m_policy_id(policy->policy_id()) {
+}
+
 void Spiffing::Clearance::addCategory(std::shared_ptr<Category> const & cat) {
+	m_cats.insert(cat);
+}
+
+void Spiffing::Clearance::addCategory(CategoryRef const & cat) {
 	m_cats.insert(cat);
 }
 
@@ -420,4 +428,38 @@ void Spiffing::Clearance::write_ber(std::string & output) const {
 	}
 	// Actual encoding.
 	der_encode(&asn_DEF_Clearance, &*asn_clearance, Spiffing::Internal::write_to_string, &output);
+}
+
+std::unique_ptr<Spiffing::Clearance> Spiffing::Clearance::restrict(Clearance const & other) {
+	if (other.m_policy_id != m_policy_id) throw std::runtime_error("Clearance policy mismatch");
+	std::unique_ptr<Clearance> newc(new Clearance(m_policy));
+	for (auto const & cls : m_classList) {
+		if (other.hasClassification(cls)) {
+			newc->m_classList.emplace(cls);
+		}
+	}
+	for (auto const & cat : m_cats) {
+		if (other.hasCategory(cat)) {
+			newc->addCategory(cat);
+		}
+	}
+	return newc;
+}
+
+std::unique_ptr<Spiffing::Clearance> Spiffing::Clearance::extend(Clearance const & other) {
+	if (other.m_policy_id != m_policy_id) throw std::runtime_error("Clearance policy mismatch");
+	std::unique_ptr<Clearance> newc(new Clearance(m_policy));
+	for (auto const & cls : m_classList) {
+		newc->m_classList.emplace(cls);
+	}
+	for (auto const & cat : m_cats) {
+		newc->addCategory(cat);
+	}
+	for (auto const & cls : other.m_classList) {
+		newc->m_classList.emplace(cls);
+	}
+	for (auto const & cat : other.m_cats) {
+		newc->addCategory(cat);
+	}
+	return newc;
 }

@@ -35,6 +35,9 @@ namespace Spiffing {
 	class Clearance {
 	public:
 		Clearance(std::string const & label, Format fmt);
+		Clearance(std::shared_ptr<Spif> const & policy);
+		Clearance(Clearance &&) = delete;
+		Clearance(Clearance const &) = delete;
 		void parse(std::string const & label, Format fmt);
 		void write(Format fmt, std::string &) const;
 
@@ -54,6 +57,10 @@ namespace Spiffing {
 			return *m_policy;
 		}
 		void addCategory(std::shared_ptr<Category> const & cat);
+		void addCategory(CategoryRef const & cat);
+
+		std::unique_ptr<Clearance> restrict(Clearance const &);
+		std::unique_ptr<Clearance> extend(Clearance const &);
 	private:
 		void parse_xml(std::string const &);
         void parse_xml_debug(std::string const &);
