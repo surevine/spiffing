@@ -50,7 +50,7 @@ namespace Spiffing {
     ASN_t * operator -> () { return m_obj; }
     ASN_t const * operator -> () const { return m_obj; }
     void ** addr() { return reinterpret_cast<void **>(&m_obj); }
-    ~Asn() { if (m_obj) m_def->free_struct(m_def, m_obj, 0); }
+    ~Asn() { if (m_obj) m_def->op->free_struct(m_def, m_obj, ASFM_FREE_EVERYTHING); }
 
     void alloc() { m_obj = (ASN_t*)calloc(1, sizeof(ASN_t)); }
     ASN_t * release() {

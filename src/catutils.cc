@@ -56,7 +56,7 @@ int Internal::write_to_string(const void * buffer, size_t size, void * app_key) 
 
 std::string Internal::oid2str(OBJECT_IDENTIFIER_t * oid) {
   std::string tmp;
-  asn_DEF_OBJECT_IDENTIFIER.xer_encoder(&asn_DEF_OBJECT_IDENTIFIER, oid, 0, XER_F_BASIC, write_to_string, &tmp);
+  OBJECT_IDENTIFIER_encode_xer(&asn_DEF_OBJECT_IDENTIFIER, oid, 0, XER_F_BASIC, write_to_string, &tmp);
   return tmp;
 }
 

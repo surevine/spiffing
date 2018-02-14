@@ -71,6 +71,6 @@ void Lacv::genString() const {
     m_sz_valid = true;
     m_sz = tmpsz;
   }
-  asn_DEF_INTEGER.xer_encoder(&asn_DEF_INTEGER, &*i, 0, XER_F_BASIC, Internal::write_to_string, &m_str);
+  INTEGER_encode_xer(&asn_DEF_INTEGER, &*i, 0, XER_F_BASIC, Internal::write_to_string, &m_str);
   i->buf = nullptr;
 }
