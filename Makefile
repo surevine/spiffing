@@ -26,7 +26,7 @@ travis:
 	update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.8 90
 	pip install cpp-coveralls
 
-pre-build: $(firstword $(ASN1C)) submodules
+pre-build: submodules
 
 submodules:
 	@[ -d deps/asn1c/asn1c ] || git submodule update --init
