@@ -45,6 +45,7 @@ SOFTWARE.
 
 // SSLP
 #include <SSLPrivileges.h>
+#include <spiffing/exceptions.h>
 
 using namespace Spiffing;
 
@@ -431,15 +432,15 @@ SecurityCategories * Internal::sslp_catencode(const std::set<::Spiffing::Categor
 
 void Internal::parse_missi_cat(Label & label, ANY * any) {
   if (any->size == 0) {
-    throw std::runtime_error("MISSI tag missing or corrupt");
+    throw label_error("MISSI tag missing or corrupt");
   }
   Asn<MissiSecurityCategories> missi(&asn_DEF_MissiSecurityCategories);
   auto r = ANY_to_type(any, &asn_DEF_MissiSecurityCategories, missi.addr());
   if (r != RC_OK) {
-    throw std::runtime_error("Could not decode MISSI tag");
+    throw label_error("Could not decode MISSI tag");
   }
   if (missi->present != MissiSecurityCategories_PR_prbacSecurityCategories) {
-    throw std::runtime_error("MISSI tag uses unsupported local RBAC policy");
+    throw label_error("MISSI tag uses unsupported local RBAC policy");
   }
   for (size_t i=0; i != (size_t)missi->choice.prbacSecurityCategories.list.count; ++i) {
     NamedTagSet * asnTagSet = missi->choice.prbacSecurityCategories.list.array[i];
@@ -484,7 +485,7 @@ void Internal::parse_missi_cat(Label & label, ANY * any) {
           Asn<TagType7Data> asn_t7(&asn_DEF_TagType7Data);
           auto r = ANY_to_type((ANY_t*)&tag->choice.freeFormField, &asn_DEF_TagType7Data, asn_t7.addr());
           if (r != RC_OK) {
-            throw std::runtime_error("Parse failure of MISSI SecurityTag");
+            throw label_error("Parse failure of MISSI SecurityTag");
           }
           TagType tagType = TagType::informative;
           if (asn_t7->present == TagType7Data_PR_bitSetAttributes) {
@@ -517,12 +518,12 @@ void Internal::parse_missi_cat(Label & label, ANY * any) {
 
 void Internal::parse_sslp_cat(Clearance & clearance, ANY * any) {
   if (any->size == 0) {
-    throw std::runtime_error("SSLPriv tag missing or corrupt");
+    throw clearance_error("SSLPriv tag missing or corrupt");
   }
   Asn<SSLPrivileges> sslp(&asn_DEF_SSLPrivileges);
   auto r = ANY_to_type(any, &asn_DEF_SSLPrivileges, sslp.addr());
   if (r != RC_OK) {
-    throw std::runtime_error("Could not decode MISSI tag");
+    throw clearance_error("Could not decode MISSI tag");
   }
   for (size_t i=0; i != (size_t)sslp->list.count; ++i) {
     NamedTagSetPrivilege * asnTagSet = sslp->list.array[i];

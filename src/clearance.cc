@@ -38,6 +38,7 @@ SOFTWARE.
 #include <rapidxml_print.hpp>
 #include <sstream>
 #include <spiffing/spiffing.h>
+#include <spiffing/exceptions.h>
 
 Spiffing::Clearance::Clearance(std::string const & clearance, Spiffing::Format fmt)
 : m_policy() {
@@ -50,7 +51,7 @@ void Spiffing::Clearance::addCategory(std::shared_ptr<Category> const & cat) {
 
 void Spiffing::Clearance::parse(std::string const & clearance, Spiffing::Format fmt) {
 	if (clearance.empty()) {
-		throw std::runtime_error("No data to parse");
+		throw clearance_error("No data to parse");
 	}
 	switch (fmt) {
 	case Spiffing::Format::BER:
@@ -63,7 +64,7 @@ void Spiffing::Clearance::parse(std::string const & clearance, Spiffing::Format 
 		parse_any(clearance);
 		break;
 	default:
-		throw std::runtime_error("Unknown format");
+		throw clearance_error("Unknown format");
 	}
 }
 
@@ -79,7 +80,7 @@ void Spiffing::Clearance::write(Spiffing::Format fmt, std::string & output) cons
         write_xml_nato(output);
         break;
 	case Spiffing::Format::ANY:
-		throw std::runtime_error("Unknown format");
+		throw clearance_error("Unknown format");
 	}
 }
 
@@ -87,7 +88,7 @@ void Spiffing::Clearance::parse_ber(std::string const & clearance) {
 	Asn<Clearance_t> asn_clearance(&asn_DEF_Clearance);
 	auto rval = ber_decode(0, &asn_DEF_Clearance, asn_clearance.addr(), clearance.data(), clearance.size());
 	if (rval.code != RC_OK) {
-		throw std::runtime_error("Failed to parse BER/DER encoded clearance");
+		throw clearance_error("Failed to parse BER/DER encoded clearance");
 	}
 	if (asn_clearance->classList) {
 		for (size_t i{0}; i != (size_t)asn_clearance->classList->size; ++i) {
@@ -141,11 +142,11 @@ void Spiffing::Clearance::parse_xml_debug(std::string const & clearance) {
 	doc.parse<0>(const_cast<char *>(tmp.c_str()));
 	auto root = doc.first_node();
 	if (std::string("clearance") != root->name()) {
-		throw std::runtime_error("Not a clearance");
+		throw clearance_error("Not a clearance");
 	}
 	if (root->xmlns() == nullptr ||
 		std::string("http://surevine.com/xmlns/spiffy") != root->xmlns()) {
-		throw std::runtime_error("XML Namespace of clearance is unknown");
+		throw clearance_error("XML Namespace of clearance is unknown");
 	}
 	// Get security policy.
 	auto securityPolicy = root->first_node("policy");
@@ -154,9 +155,9 @@ void Spiffing::Clearance::parse_xml_debug(std::string const & clearance) {
 		if (idattr) m_policy_id = idattr->value();
 		m_policy = Site::site().spif(m_policy_id);
 		if (m_policy->policy_id() != m_policy_id) {
-			throw std::runtime_error("Policy mismatch: " + m_policy_id);
+			throw clearance_error("Policy mismatch: " + m_policy_id);
 		}
-	} else throw std::runtime_error("No policy in clearance");
+	} else throw clearance_error("No policy in clearance");
 	// Get classification.
 	for (auto securityClassification = root->first_node("classification"); securityClassification; securityClassification = securityClassification->next_sibling("classification")) {
 		auto lacvattr = securityClassification->first_attribute("lacv");
@@ -168,7 +169,7 @@ void Spiffing::Clearance::parse_xml_debug(std::string const & clearance) {
 	// Find tagsets.
 	for (auto tag = root->first_node("tag"); tag; tag = tag->next_sibling("tag")) {
 		auto typeattr = tag->first_attribute("type");
-		if (!typeattr) throw std::runtime_error("tag without type");
+		if (!typeattr) throw clearance_error("tag without type");
 		std::string tag_type = typeattr->value();
 		Spiffing::TagType type;
 		if (tag_type == "restrictive") {
@@ -179,12 +180,12 @@ void Spiffing::Clearance::parse_xml_debug(std::string const & clearance) {
 			type = Spiffing::TagType::enumeratedPermissive;
 		} else if (tag_type == "enumeratedRestrictive") {
 			type = Spiffing::TagType::enumeratedRestrictive;
-		} else throw std::runtime_error("unsupported tag type " + tag_type);
+		} else throw clearance_error("unsupported tag type " + tag_type);
 		auto idattr = tag->first_attribute("id");
-		if (!idattr) throw std::runtime_error("tag without id");
+		if (!idattr) throw clearance_error("tag without id");
 		std::string id = idattr->value();
 		auto lacvattr = tag->first_attribute("lacv");
-		if (!lacvattr) throw std::runtime_error("tag without lacv");
+		if (!lacvattr) throw clearance_error("tag without lacv");
 		Spiffing::Lacv lacv = Spiffing::Lacv::parse(std::string(lacvattr->value(), lacvattr->value_size()));
 		auto cat = m_policy->tagSetLookup(id)->categoryLookup(type, lacv);
 		addCategory(cat);
@@ -199,7 +200,7 @@ void Spiffing::Clearance::parse_xml(std::string const & label) {
 	doc.parse<parse_fastest>(const_cast<char *>(tmp.c_str()));
 	auto root = doc.first_node();
 	if (root->xmlns() == nullptr) {
-		throw std::runtime_error("XML Namespace of label is unknown");
+		throw clearance_error("XML Namespace of label is unknown");
 	}
 	std::string xmlns{root->xmlns(), root->xmlns_size()};
 	if (xmlns == "http://surevine.com/xmlns/spiffy") {
@@ -207,7 +208,7 @@ void Spiffing::Clearance::parse_xml(std::string const & label) {
 	} else if (xmlns == "urn:nato:stanag:4774:confidentialityclearance:1:0") {
 		parse_xml_nato(label);
 	} else {
-		throw std::runtime_error("Namespace not found");
+		throw clearance_error("Namespace not found");
 	}
 }
 
@@ -219,11 +220,11 @@ void Spiffing::Clearance::parse_xml_nato(std::string const & clearance) {
 	doc.parse<0>(const_cast<char *>(tmp.c_str()));
 	auto root = doc.first_node();
 	if (std::string("ConfidentialityClearance") != root->name()) {
-		throw std::runtime_error("Not a clearance");
+		throw clearance_error("Not a clearance");
 	}
 	if (root->xmlns() == nullptr ||
 		std::string("urn:nato:stanag:4774:confidentialityclearance:1:0") != root->xmlns()) {
-		throw std::runtime_error("XML Namespace of clearance is unknown");
+		throw clearance_error("XML Namespace of clearance is unknown");
 	}
 	// Get security policy.
 	auto securityPolicy = root->first_node("PolicyIdentifier", slab);
@@ -238,9 +239,9 @@ void Spiffing::Clearance::parse_xml_nato(std::string const & clearance) {
 		m_policy = Site::site().spif_by_name(securityPolicy->value());
 		if (m_policy_id.empty()) m_policy_id = m_policy->policy_id();
 		if (m_policy->policy_id() != m_policy_id) {
-			throw std::runtime_error("Policy mismatch: " + m_policy_id);
+			throw clearance_error("Policy mismatch: " + m_policy_id);
 		}
-	} else throw std::runtime_error("No policy in clearance");
+	} else throw clearance_error("No policy in clearance");
 	// Get classification list.
 	auto classList = root->first_node("ClassificationList");
 	for(auto securityClassification = classList->first_node("Classification", slab); securityClassification; securityClassification = securityClassification->next_sibling("Classification", slab)) {
@@ -252,16 +253,16 @@ void Spiffing::Clearance::parse_xml_nato(std::string const & clearance) {
 	// Find tagsets.
 	for (auto tag = root->first_node("Category", slab); tag; tag = tag->next_sibling("Category", slab)) {
 		auto typeattr = tag->first_attribute("Type");
-		if (!typeattr) throw std::runtime_error("tag without Type");
+		if (!typeattr) throw clearance_error("tag without Type");
 		std::string tag_type = typeattr->value();
 		TagType type;
 		if (tag_type == "RESTRICTIVE") {
 			type = TagType::restrictive;
 		} else if (tag_type == "PERMISSIVE") {
 			type = TagType::permissive;
-		} else throw std::runtime_error("unsupported tag type " + tag_type);
+		} else throw clearance_error("unsupported tag type " + tag_type);
 		auto tagname_a = tag->first_attribute("TagName");
-		if (!tagname_a) throw std::runtime_error("Category without TagName");
+		if (!tagname_a) throw clearance_error("Category without TagName");
 		std::string tagname = tagname_a->value();
 		auto tagSet = m_policy->tagSetLookupByName(tagname);
 		for (auto valtag = tag->first_node("GenericValue"); valtag; valtag = valtag->next_sibling("GenericValue")) {
@@ -317,7 +318,7 @@ void Spiffing::Clearance::write_xml_debug(std::string & output) const {
 			p = "enumeratedRestrictive";
 			break;
 		default:
-			throw std::runtime_error("Tagtype unimplemented!");
+			throw clearance_error("Tagtype unimplemented!");
 		}
 		tag->append_attribute(doc.allocate_attribute("type", p));
 		tag->append_attribute(doc.allocate_attribute("lacv", cat->lacv().toString().c_str()));
@@ -374,7 +375,7 @@ void Spiffing::Clearance::write_xml_nato(std::string & output) const {
 					p = "PERMISSIVE";
 					break;
 				default:
-					throw std::runtime_error("Tagtype unimplemented!");
+					throw clearance_error("Tagtype unimplemented!");
 			}
 			tag->append_attribute(doc.allocate_attribute("Type", p));
 			// Note: needs a temp string.

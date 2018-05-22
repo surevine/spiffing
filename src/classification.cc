@@ -27,6 +27,7 @@ SOFTWARE.
 #include <spiffing/categorygroup.h>
 #include <spiffing/equivclass.h>
 #include <spiffing/label.h>
+#include <spiffing/exceptions.h>
 
 using namespace Spiffing;
 
@@ -59,7 +60,7 @@ void Classification::equivDecrypt(std::shared_ptr<EquivClassification> const & e
 }
 std::unique_ptr<Label> Classification::encrypt(Label const & old, std::string const & policy_id) const {
 	auto i = m_equivEncrypt.find(policy_id);
-	if (i == m_equivEncrypt.end()) throw std::runtime_error("No equivalent classification");
+	if (i == m_equivEncrypt.end()) throw equiv_error("No equivalent classification");
 	auto equiv = (*i).second;
 	return equiv->create();
 }
