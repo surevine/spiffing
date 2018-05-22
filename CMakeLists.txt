@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 2.8)
 project(spiffing)
-
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -pedantic -fPIC")
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic -fPIC")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
 
 set(ASN1_SOURCES ESSSecurityLabel.asn Clearance.asn SSLPrivileges.asn MissiSecurityCategories.asn acp145.asn)
