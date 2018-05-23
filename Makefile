@@ -44,7 +44,7 @@ tests:
 	@echo "Rebuilding:: ASN.1 Compile"
 	@$(MAKE) -j6 "DEBUG=-g --coverage" build/libspiffing-asn.a
 	@echo "Rebuilding:: Rest"
-	@$(MAKE) -j6 "MAKELEVEL=0" "DEBUG=-g --coverage" test spifflicator transpifferizer
+	@$(MAKE) -j6 "MAKELEVEL=0" "DEBUG=-g --coverage" test-spiffing spifflicator transpifferizer
 	@echo "Valgrind test"
 	@$(MAKE) -C test-data/ EXECUTOR="valgrind --error-exitcode=99 --leak-check=full --show-leak-kinds=all"
 	@echo "Coverage test"
@@ -70,13 +70,13 @@ SPIFFINGSOURCE=$(wildcard src/*.cc)
 SPIFFINGOBJS=$(SPIFFINGSOURCE:src/%.cc=$(SPIFFINGBUILD)/spiffing/%.o)
 
 DEBUG?=-g# --coverage #-fprofile-dir=./build/ #-fprofile-generate=./build/ #-DEMIT_ASN_DEBUG=1
-CXXFLAGS=-std=c++11
+CXXFLAGS=-std=c++14
 
 gen-ber/.marker: $(ASNSOURCE) acp145.asn
 	@mkdir -p $(dir $@)
 	@touch gen-ber/.marker
-	@(cd $(dir $@) && $(ASN1C) -fwide-types $(^:%=../%))
-	@mv gen-ber/converter-sample.c .
+	@(cd $(dir $@) && $(ASN1C) -fwide-types -fcompound-names $(^:%=../%))
+	@-mv gen-ber/converter-example.c .
 	@echo $(GENBEROBJS) $(GENBERSOURCE)
 
 gen-ber/%.c gen-ber/%.h: gen-ber/.marker
@@ -84,7 +84,7 @@ gen-ber/%.c gen-ber/%.h: gen-ber/.marker
 
 converter-sample.c: gen-ber/.marker
 
-.PRECIOUS: converter-sample.c gen-ber/%.c gen-ber/%.h gen-ber/.marker
+.PRECIOUS: converter-example.c gen-ber/%.c gen-ber/%.h gen-ber/.marker
 
 ifeq (0,$(MAKELEVEL))
 build/libspiffing-asn.a: $(GENBEROBJS) gen-ber/.marker
@@ -110,7 +110,7 @@ gen-ber/%.o: gen-ber/%.c
 
 clean:
 	@echo [CLEAN]
-	@rm -rf build/ gen-ber/ report/ spifflicator clearance-parser label-parser clearance-reader label-reader converter-sample.c
+	@rm -rf build/ gen-ber/ report/ spifflicator clearance-parser label-parser clearance-reader label-reader converter-example.c
 
 build/label-parser.o: converter-sample.c build/libspiffing-asn.a
 	@echo [CC] $@
@@ -159,7 +159,7 @@ transpifferizer: build/transpifferizer.o build/libspiffing.a build/libspiffing-a
 	@echo [LINK] $@
 	@$(CXX) $(DEBUG) $(CXXFLAGS) -L$(SPIFFINGBUILD) -Lbuild/ -o $@ $< -lspiffing -lspiffing-asn
 
-test: build/test.o build/libspiffing.a build/libspiffing-asn.a
+test-spiffing: build/test.o build/libspiffing.a build/libspiffing-asn.a
 	@echo [LINK] $@
 	@$(CXX) $(DEBUG) $(CXXFLAGS) -L$(SPIFFINGBUILD) -Lbuild/ -o $@ $< -lspiffing -lspiffing-asn
 
