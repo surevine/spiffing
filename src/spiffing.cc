@@ -28,7 +28,7 @@ std::shared_ptr<Spif> const & Site::spif_by_name(std::string const & name) const
 }
 
 std::shared_ptr<Spif> Site::load(std::istream & file) {
-    std::shared_ptr<Spif> spif(new Spif(file, Format::XML));
+    std::shared_ptr<Spif> spif = std::make_shared<Spif>(file, Format::XML);
     m_spifs[spif->policy_id()] = spif;
     m_spifnames[spif->name()] = spif;
     return spif;

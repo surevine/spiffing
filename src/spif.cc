@@ -105,7 +105,7 @@ namespace {
 					std::string txt(txt_a->value(), txt_a->value_size());
 					if (qcode_a) {
 						std::string qcode(qcode_a->value(), qcode_a->value_size());
-						if (!ptr) ptr = std::unique_ptr<Marking>{new Marking(langTag)};
+						if (!ptr) ptr = std::make_unique<Marking>(langTag);
 						if (qcode == "prefix") {
 							ptr->prefix(txt);
 						} else if (qcode == "suffix") {
@@ -171,7 +171,7 @@ namespace {
 					}
 				}
 				auto phrase_a = data->first_attribute("phrase");
-				if (!ptr) ptr = std::unique_ptr<Marking>{new Marking(langTag)};
+				if (!ptr) ptr = std::make_unique<Marking>(langTag);
 				int loc(0);
 				bool locset = false;
 				for (auto code = data->first_node("code"); code; code = code->next_sibling("code")) {
@@ -214,7 +214,7 @@ namespace {
 				ptr->addPhrase(loc, phrase);
 			}
 			if (found) {
-				if (!markings) markings = std::unique_ptr<Markings>{new Markings()};
+				if (!markings) markings = std::make_unique<Markings>();
 				markings->marking(std::move(ptr));
 			} else {
 				return markings;
@@ -259,9 +259,9 @@ namespace {
 		auto lacv_a = node->first_attribute("lacv");
 		if (lacv_a) {
 			Lacv l{parseLacv(lacv_a)};
-			return std::unique_ptr<CategoryData>(new CategoryData(tagSetRef, tagType, l));
+			return std::make_unique<CategoryData>(tagSetRef, tagType, l);
 		} else {
-			return std::unique_ptr<CategoryData>(new CategoryData(tagSetRef, tagType));
+			return std::make_unique<CategoryData>(tagSetRef, tagType);
 		}
 	}
 
@@ -278,7 +278,7 @@ namespace {
 		} else if (opname == "all") {
 			opType = OperationType::all;
 		}
-		std::unique_ptr<CategoryGroup> group(new CategoryGroup(opType));
+		std::unique_ptr<CategoryGroup> group = std::make_unique<CategoryGroup>(opType);
 		for (auto cd = node->first_node("categoryGroup"); cd; cd = cd->next_sibling("categoryGroup")) {
 			group->addCategoryData(parseOptionalCategoryData(cd));
 		}
@@ -303,7 +303,7 @@ namespace {
 		std::string name{name_a->value()};
 		auto hierarchy_a = classification->first_attribute("hierarchy");
 		unsigned long hierarchy{strtoul(hierarchy_a->value(), NULL, 10)};
-		std::shared_ptr<Classification> cls{new Classification(lacv, name, hierarchy)};
+		std::shared_ptr<Classification> cls = std::make_shared<Classification>(lacv, name, hierarchy);
 		for (auto reqCat = classification->first_node("requiredCategory"); reqCat; reqCat = reqCat->next_sibling("requiredCategory")) {
 			cls->addRequiredCategory(parseCategoryGroup(reqCat));
 		}
@@ -317,7 +317,7 @@ namespace {
 			auto when_a = equivClass->first_attribute("applied");
 			if (!when_a || !when_a->value()) throw spif_syntax_error("Missing applied in equivClass");
 			std::string when{when_a->value()};
-			std::shared_ptr<EquivClassification> equiv{new EquivClassification((*i).second, llacv)};
+			std::shared_ptr<EquivClassification> equiv = std::make_shared<EquivClassification>((*i).second, llacv);
 			for (auto reqCat = equivClass->first_node("requiredCategory"); reqCat; reqCat = reqCat->next_sibling("requiredCategory")) {
 				equiv->addRequiredCategory(parseCategoryGroup(reqCat));
 			}
@@ -348,9 +348,9 @@ namespace {
 		Lacv lacv = parseLacv(equiv->first_attribute("lacv"));
 		bool discard = (equiv->first_attribute("action") != nullptr);
 		if (discard) {
-			return std::shared_ptr<EquivCat>(new EquivCat(policy_id));
+			return std::make_shared<EquivCat>(policy_id);
 		} else {
-			return std::shared_ptr<EquivCat>(new EquivCat(policy_id, tagsetid_a->value(), tagType, lacv));
+			return std::make_shared<EquivCat>(policy_id, tagsetid_a->value(), tagType, lacv);
 		}
 	}
 
@@ -360,7 +360,7 @@ namespace {
 										std::map<std::string,std::string> const & policies) {
 		auto id_a = tagSet->first_attribute("id");
 		auto name_a = tagSet->first_attribute("name");
-		std::shared_ptr<TagSet> ts{new TagSet(id_a->value(), name_a->value())};
+		std::shared_ptr<TagSet> ts = std::make_shared<TagSet>(id_a->value(), name_a->value());
 		ts->markings(parseMarkings(tagSet));
 		for (auto tag = tagSet->first_node("securityCategoryTag"); tag; tag = tag->next_sibling("securityCategoryTag")) {
 			auto tagName_a = tag->first_attribute("name");
@@ -377,12 +377,12 @@ namespace {
 					t7enc = InformativeEncoding::enumerated;
 				}
 			}
-			std::shared_ptr<Tag> t{new Tag(*ts, tagType, t7enc, tagName_a->value())};
+			std::shared_ptr<Tag> t = std::make_shared<Tag>(*ts, tagType, t7enc, tagName_a->value());
 			ts->addTag(t);
 			t->markings(parseMarkings(tag));
 			for (auto cat = tag->first_node("tagCategory"); cat; cat = cat->next_sibling("tagCategory")) {
 				Lacv lacv = parseLacv(cat->first_attribute("lacv"));
-				std::shared_ptr<Category> c{new Category(*t, cat->first_attribute("name")->value(), lacv, ordinal++)};
+				std::shared_ptr<Category> c = std::make_shared<Category>(*t, cat->first_attribute("name")->value(), lacv, ordinal++);
 				parseExcludedClass(cat, c, classNames);
 				t->addCategory(c);
 				for (auto reqnode = cat->first_node("requiredCategory"); reqnode; reqnode = reqnode->next_sibling("requiredCategory")) {

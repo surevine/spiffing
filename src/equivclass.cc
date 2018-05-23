@@ -39,7 +39,7 @@ void EquivClassification::addRequiredCategory(std::unique_ptr<CategoryGroup> &&r
 
 std::unique_ptr<Label> EquivClassification::create() const {
     std::shared_ptr<Spif> spif = Site::site().spif(m_policy_id);
-    std::unique_ptr<Label> label{new Label(spif, m_class)};
+    std::unique_ptr<Label> label = std::make_unique<Label>(spif, m_class);
     for (auto & i : m_reqs) {
         i->fixup(*label);
     }
