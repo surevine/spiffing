@@ -1,8 +1,10 @@
 before_install:
   - sudo make travis
   - make pre-build
+  - make asn1c
+  - make gen-ber/.marker
 language: cpp
-script: make "DEBUG=-g --coverage" && make "DEBUG=-g --coverage" test && make "DEBUG=-g --coverage" quick-tests
+script: make "DEBUG=-g --coverage" && make "DEBUG=-g --coverage" test-spiffing && make "DEBUG=-g --coverage" quick-tests
 after_success:
   - gcov-4.8 -p -r `find build -name '*.gcda'`
   - coveralls --exclude gen-ber --exclude deps --no-gcov --verbose

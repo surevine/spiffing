@@ -21,10 +21,11 @@ help:
 travis:
 	add-apt-repository -y ppa:ubuntu-toolchain-r/test
 	apt-get update -qq
-	apt-get install -qq gcc-4.8 g++-4.8
-	update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.8 90
-	update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.8 90
+	apt-get install -qq gcc-5 g++-5
+	update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-5 90
+	update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-5 90
 	pip install cpp-coveralls
+	g++ --version
 
 pre-build: submodules
 
@@ -35,6 +36,9 @@ $(W_DIR)/deps/asn1c/asn1c/asn1c: submodules
 	cd deps/asn1c && autoreconf -iv
 	cd deps/asn1c && ./configure --prefix=$(W_DIR)/tmp-asn1c
 	cd deps/asn1c && make
+
+asn1c: $(W_DIR)/deps/asn1c/asn1c/asn1c
+	@echo "ASN1 Compiler Ready."
 
 tests:
 	@echo "Rebuilding:: Clean"
@@ -53,7 +57,7 @@ tests:
 	@scan-build -o report/clang make SPIFFINGBUILD=tmp-analyzer tmp-analyzer/libspiffing.a
 	@rm -rf tmp-analyzer
 
-quick-tests: test transpifferizer
+quick-tests: test-spiffing transpifferizer
 	@$(MAKE) -C test-data/
 
 coverage: quick-tests
@@ -79,7 +83,7 @@ gen-ber/.marker: $(ASNSOURCE) acp145.asn
 	@-mv gen-ber/converter-example.c .
 	@echo $(GENBEROBJS) $(GENBERSOURCE)
 
-gen-ber/%.c gen-ber/%.h: gen-ber/.marker
+gen-ber/%.c gen-ber/%.h: gen-ber/.marker $(ASN1C)
 	@echo "ASN.1 Parsing"
 
 converter-sample.c: gen-ber/.marker
