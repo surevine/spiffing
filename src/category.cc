@@ -28,6 +28,7 @@ SOFTWARE.
 #include <spiffing/tag.h>
 #include <spiffing/label.h>
 #include <spiffing/equivcat.h>
+#include <spiffing/exceptions.h>
 
 using namespace Spiffing;
 
@@ -38,7 +39,7 @@ Category::Category(Tag & tag, std::string const & name, Lacv const & lacv, size_
 void Category::excluded(Classification const & c) {
   auto ins = m_excludedClass.insert(c.lacv());
   if (!ins.second) {
-    throw std::runtime_error("Duplicate excluded classification in category");
+    throw spif_invariant_error("Duplicate excluded classification in category");
   }
 }
 
@@ -77,7 +78,7 @@ void Category::encryptEquiv(std::shared_ptr<EquivCat> const & equivCat) {
 void Category::encrypt(Label &label, std::string const &policy_id) const {
   auto i = m_encryptEquivs.lower_bound(policy_id);
   auto end = m_encryptEquivs.upper_bound(policy_id);
-  if (i == end) throw std::runtime_error("No equivalence to " + m_name);
+  if (i == end) throw equiv_error("No equivalence to " + m_name);
   for(; i != end; ++i) {
     (*i).second->apply(label);
   }

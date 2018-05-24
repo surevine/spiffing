@@ -21,10 +21,11 @@ help:
 travis:
 	add-apt-repository -y ppa:ubuntu-toolchain-r/test
 	apt-get update -qq
-	apt-get install -qq gcc-4.8 g++-4.8
-	update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.8 90
-	update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.8 90
+	apt-get install -qq gcc-5 g++-5
+	update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-5 90
+	update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-5 90
 	pip install cpp-coveralls
+	g++ --version
 
 pre-build: submodules
 
@@ -36,6 +37,9 @@ $(W_DIR)/deps/asn1c/asn1c/asn1c: submodules
 	cd deps/asn1c && ./configure --prefix=$(W_DIR)/tmp-asn1c
 	cd deps/asn1c && make
 
+asn1c: $(W_DIR)/deps/asn1c/asn1c/asn1c
+	@echo "ASN1 Compiler Ready."
+
 tests:
 	@echo "Rebuilding:: Clean"
 	@$(MAKE) clean
@@ -44,7 +48,7 @@ tests:
 	@echo "Rebuilding:: ASN.1 Compile"
 	@$(MAKE) -j6 "DEBUG=-g --coverage" build/libspiffing-asn.a
 	@echo "Rebuilding:: Rest"
-	@$(MAKE) -j6 "MAKELEVEL=0" "DEBUG=-g --coverage" test spifflicator transpifferizer
+	@$(MAKE) -j6 "MAKELEVEL=0" "DEBUG=-g --coverage" test-spiffing spifflicator transpifferizer
 	@echo "Valgrind test"
 	@$(MAKE) -C test-data/ EXECUTOR="valgrind --error-exitcode=99 --leak-check=full --show-leak-kinds=all"
 	@echo "Coverage test"
@@ -53,7 +57,7 @@ tests:
 	@scan-build -o report/clang make SPIFFINGBUILD=tmp-analyzer tmp-analyzer/libspiffing.a
 	@rm -rf tmp-analyzer
 
-quick-tests: test transpifferizer
+quick-tests: test-spiffing transpifferizer
 	@$(MAKE) -C test-data/
 
 coverage: quick-tests
@@ -70,21 +74,21 @@ SPIFFINGSOURCE=$(wildcard src/*.cc)
 SPIFFINGOBJS=$(SPIFFINGSOURCE:src/%.cc=$(SPIFFINGBUILD)/spiffing/%.o)
 
 DEBUG?=-g# --coverage #-fprofile-dir=./build/ #-fprofile-generate=./build/ #-DEMIT_ASN_DEBUG=1
-CXXFLAGS=-std=c++11
+CXXFLAGS=-std=c++14
 
 gen-ber/.marker: $(ASNSOURCE) acp145.asn
 	@mkdir -p $(dir $@)
 	@touch gen-ber/.marker
-	@(cd $(dir $@) && $(ASN1C) -fwide-types $(^:%=../%))
-	@mv gen-ber/converter-sample.c .
+	@(cd $(dir $@) && $(ASN1C) -fwide-types -fcompound-names $(^:%=../%))
+	@-mv gen-ber/converter-example.c .
 	@echo $(GENBEROBJS) $(GENBERSOURCE)
 
-gen-ber/%.c gen-ber/%.h: gen-ber/.marker
+gen-ber/%.c gen-ber/%.h: gen-ber/.marker $(ASN1C)
 	@echo "ASN.1 Parsing"
 
 converter-sample.c: gen-ber/.marker
 
-.PRECIOUS: converter-sample.c gen-ber/%.c gen-ber/%.h gen-ber/.marker
+.PRECIOUS: converter-example.c gen-ber/%.c gen-ber/%.h gen-ber/.marker
 
 ifeq (0,$(MAKELEVEL))
 build/libspiffing-asn.a: $(GENBEROBJS) gen-ber/.marker
@@ -110,7 +114,7 @@ gen-ber/%.o: gen-ber/%.c
 
 clean:
 	@echo [CLEAN]
-	@rm -rf build/ gen-ber/ report/ spifflicator clearance-parser label-parser clearance-reader label-reader converter-sample.c
+	@rm -rf build/ gen-ber/ report/ spifflicator clearance-parser label-parser clearance-reader label-reader converter-example.c
 
 build/label-parser.o: converter-sample.c build/libspiffing-asn.a
 	@echo [CC] $@
@@ -159,7 +163,7 @@ transpifferizer: build/transpifferizer.o build/libspiffing.a build/libspiffing-a
 	@echo [LINK] $@
 	@$(CXX) $(DEBUG) $(CXXFLAGS) -L$(SPIFFINGBUILD) -Lbuild/ -o $@ $< -lspiffing -lspiffing-asn
 
-test: build/test.o build/libspiffing.a build/libspiffing-asn.a
+test-spiffing: build/test.o build/libspiffing.a build/libspiffing-asn.a
 	@echo [LINK] $@
 	@$(CXX) $(DEBUG) $(CXXFLAGS) -L$(SPIFFINGBUILD) -Lbuild/ -o $@ $< -lspiffing -lspiffing-asn
 

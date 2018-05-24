@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 2.8)
 project(spiffing)
-
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -pedantic -fPIC")
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic -fPIC")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
 
 set(ASN1_SOURCES ESSSecurityLabel.asn Clearance.asn SSLPrivileges.asn MissiSecurityCategories.asn acp145.asn)
@@ -92,7 +93,7 @@ set(SOURCE_FILES
     src/marking.cc
     src/spif.cc
     src/tag.cc
-    src/tagset.cc include/spiffing/spiffing.h src/spiffing.cc src/equivclass.cc include/spiffing/equivclass.h src/equivcat.cc include/spiffing/equivcat.h src/constants.cc include/spiffing//constants.h include/spiffing/markings.h src/markings.cc)
+    src/tagset.cc include/spiffing/spiffing.h src/spiffing.cc src/equivclass.cc include/spiffing/equivclass.h src/equivcat.cc include/spiffing/equivcat.h src/constants.cc include/spiffing//constants.h include/spiffing/markings.h src/markings.cc include/spiffing/exceptions.h src/exceptions.cc)
 include_directories(include)
 include_directories(deps/rapidxml)
 add_library(spiffing ${SOURCE_FILES})
