@@ -103,7 +103,9 @@ void Label::parse_ber(std::string const & label) {
 	} else throw std::runtime_error("No policy in label");
 	if (asn_label->security_classification) {
 		m_class = m_policy->classificationLookup(*asn_label->security_classification);
-	}
+	} else {
+        m_class = m_policy->classificationLookup(0);
+    }
 	if (asn_label->security_categories) {
 		for (size_t i{0}; i != (size_t)asn_label->security_categories->list.count; ++i) {
 			std::string tagType = Internal::oid2str(&asn_label->security_categories->list.array[i]->type);
@@ -130,7 +132,7 @@ void Label::parse_xml(std::string const & label) {
 	xml_document<> doc;
 	doc.parse<parse_fastest>(const_cast<char *>(tmp.c_str()));
 	auto root = doc.first_node();
-	if (root->xmlns() == nullptr) {
+	if (root == nullptr || root->xmlns() == nullptr) {
 		throw std::runtime_error("XML Namespace of label is unknown");
 	}
 	std::string xmlns{root->xmlns(), root->xmlns_size()};
@@ -207,7 +209,7 @@ void Label::parse_xml_nato(std::string const & label) {
 	using namespace rapidxml;
 	std::string tmp{label};
 	xml_document<> doc;
-	doc.parse<0>(const_cast<char *>(tmp.c_str()));
+	doc.parse<rapidxml::parse_validate_closing_tags>(const_cast<char *>(tmp.c_str()));
 	auto org = doc.first_node();
 	if (std::string("originatorConfidentialityLabel") != org->name()) {
 		throw std::runtime_error("Not a NATO originator label");
@@ -240,7 +242,9 @@ void Label::parse_xml_nato(std::string const & label) {
 	auto securityClassification = info->first_node("Classification");
 	if (securityClassification) {
 		m_class = m_policy->classificationLookup(securityClassification->value());
-	}
+	} else {
+        m_class = m_policy->classificationLookup(0);
+    }
 	// Find tagsets.
 	for (auto tag = info->first_node("Category"); tag; tag = tag->next_sibling("Category")) {
 		auto typeattr = tag->first_attribute("Type");
@@ -269,6 +273,10 @@ void Label::parse_any(std::string const & label) {
 	try {
 		rapidxml::xml_document<> doc;
 		doc.parse<rapidxml::parse_fastest>(const_cast<char *>(label.c_str()));
+        if (doc.first_node() == nullptr) {
+            parse_ber(label);
+            return;
+        }
 	} catch (rapidxml::parse_error & e) {
 		parse_ber(label);
 		return;
