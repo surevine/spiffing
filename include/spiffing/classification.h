@@ -88,7 +88,7 @@ namespace Spiffing {
 	};
 
 	struct ClassificationHierarchyCompare {
-		bool operator() (std::shared_ptr<Classification> const & l, std::shared_ptr<Classification> const & r) {
+		bool operator() (std::shared_ptr<Classification> const & l, std::shared_ptr<Classification> const & r) const {
 			return l->hierarchy() < r->hierarchy();
 		}
 	};

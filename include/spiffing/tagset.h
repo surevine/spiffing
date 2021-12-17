@@ -32,6 +32,7 @@ SOFTWARE.
 #include <memory>
 #include <map>
 #include <set>
+#include <stdexcept>
 
 namespace Spiffing {
     class TagSet {
